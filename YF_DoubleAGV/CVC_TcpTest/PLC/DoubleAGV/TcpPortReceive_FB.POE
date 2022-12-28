@@ -1,0 +1,630 @@
+FUNCTION_BLOCK TcpPortReceive_FB
+VAR_EXTERNAL
+NDC8 : NDC8_T;
+END_VAR
+
+VAR_INPUT
+
+END_VAR
+
+VAR_OUTPUT
+
+END_VAR
+
+VAR
+serial_read  : NDC8_SERIAL_READ;
+TcpPort_CRC : TcpPort_CRC_FB;
+PreMasterHeartBeat : dint;
+NoHeartBeat : bool;
+NoHeartBeatTon : ton;
+Count1,index,Count2,TempIndex2,Count3,TempIndex3 : dint;
+FirstLength,SecondLength,ThridLength : int;
+END_VAR
+
+(*Automatically declared*)
+VAR_EXTERNAL
+	MASTEROPWORKING : bool;
+	MASTERPOSITIONY : dint;
+	MASTERVIRREARENCSPEED : dint;
+	MASTERREARSETANGLE : dint;
+	MASTERTRAVELDIR : dint;
+	MASTERREARENCSPEED : dint;
+	MASTERVIRREARENCANGLE : dint;
+	MASTERSETSPEED : dint;
+	MASTERVEHICLEID : dint;
+	MASTERHEARTBEAT : dint;
+	MASTERVIRFRONTENCSPEED : dint;
+	MASTERFLAG : dint;
+	MASTERVIRFRONTENCANGLE : dint;
+	MASTERREARENCANGLE : dint;
+	MASTERFRONTSETSPEED : dint;
+	TCPPORTRECEIVEDATABYTESALL : ARRAY [1..100] OF Byte;
+	MASTERVIRFRONTSETSPEED : dint;
+	MASTERVIRREARSETSPEED : dint;
+	MASTERREARSETSPEED : dint;
+	MASTERERRORSTOP : bool;
+	MASTERANGLE2 : dint;
+	MASTERFRONTENCANGLE : dint;
+	MASTERVIRREARSETANGLE : dint;
+	MASTEROPCODE : dint;
+	MASTERFRONTSETANGLE : dint;
+	MASTERFRONTENCSPEED : dint;
+	MASTERVIRFRONTSETANGLE : dint;
+	HEARTBEATTIMEOUT : bool;
+	MASTERPOSITIONX : dint;
+END_VAR
+(**  **)
+(**  **)
+(** serial_read(Port:='COM5'); **)
+	(* call - Stmt *)
+	CAL serial_read (
+		Port := 'COM5'
+	)
+
+(** if serial_read.Length>0 then **)
+	(* if - Cond *)
+	LD serial_read.Length
+	GT 0
+	JMPCN ODK_SKIP_000000000000001_000000000000001
+
+		(* then - Stmts *)
+
+(** 	Count1 := Count1 + 1; **)
+		(* assign - Stmt *)
+		LD Count1
+		ADD 1
+		ST Count1
+
+(** 	FirstLength := serial_read.Length; **)
+		(* assign - Stmt *)
+		LD serial_read.Length
+		ST FirstLength
+
+(** 	for index:=1 to 32 by 1 do **)
+		(* for - Init *)
+		LD 1
+		ST index
+		EQ 32
+		JMPC ODK_FOR_STMTS_000000000000002
+
+		(* for - Cond *)
+		ODK_FOR_000000000000002:
+
+		LD 1
+		GT 32
+		JMPC ODK_FOR_DOWN_000000000000002
+
+		LD 0
+		GT 1
+		JMPC ODK_END_FOR_000000000000002
+
+		LD 32
+		LT index
+		JMPC ODK_END_FOR_000000000000002
+		JMP ODK_FOR_STMTS_000000000000002
+
+		ODK_FOR_DOWN_000000000000002:
+
+		LD 32
+		GT index
+		JMPC ODK_END_FOR_000000000000002
+
+		LD 0
+		LT 1
+		JMPC ODK_END_FOR_000000000000002
+
+			(* for - Stmts *)
+			ODK_FOR_STMTS_000000000000002:
+
+(** 		TcpPortReceiveDataBytesAll[index] := serial_read.data[index]; **)
+			(* assign - Stmt *)
+			LD serial_read.data[index]
+			ST TcpPortReceiveDataBytesAll[index]
+
+		(* for - By *)
+		LD 1
+		ADD index
+		ST index
+(** 	end_for; **)
+
+		JMP ODK_FOR_000000000000002
+
+		(* for - End *) 
+		ODK_END_FOR_000000000000002:
+
+		JMP ODK_END_IF_000000000000001
+
+(** end_if; **)
+	(* if - End *) 
+	ODK_SKIP_000000000000001_000000000000001:
+	ODK_END_IF_000000000000001:
+
+(**  **)
+(** serial_read(Port:='COM5'); **)
+	(* call - Stmt *)
+	CAL serial_read (
+		Port := 'COM5'
+	)
+
+(** if serial_read.Length>0 then **)
+	(* if - Cond *)
+	LD serial_read.Length
+	GT 0
+	JMPCN ODK_SKIP_000000000000003_000000000000001
+
+		(* then - Stmts *)
+
+(** 	Count2 := Count2 + 1; **)
+		(* assign - Stmt *)
+		LD Count2
+		ADD 1
+		ST Count2
+
+(** 	SecondLength := serial_read.Length; **)
+		(* assign - Stmt *)
+		LD serial_read.Length
+		ST SecondLength
+
+(** 	for index:=1 to 32 by 1 do **)
+		(* for - Init *)
+		LD 1
+		ST index
+		EQ 32
+		JMPC ODK_FOR_STMTS_000000000000004
+
+		(* for - Cond *)
+		ODK_FOR_000000000000004:
+
+		LD 1
+		GT 32
+		JMPC ODK_FOR_DOWN_000000000000004
+
+		LD 0
+		GT 1
+		JMPC ODK_END_FOR_000000000000004
+
+		LD 32
+		LT index
+		JMPC ODK_END_FOR_000000000000004
+		JMP ODK_FOR_STMTS_000000000000004
+
+		ODK_FOR_DOWN_000000000000004:
+
+		LD 32
+		GT index
+		JMPC ODK_END_FOR_000000000000004
+
+		LD 0
+		LT 1
+		JMPC ODK_END_FOR_000000000000004
+
+			(* for - Stmts *)
+			ODK_FOR_STMTS_000000000000004:
+
+(** 		TempIndex2 := index + 32; **)
+			(* assign - Stmt *)
+			LD index
+			ADD 32
+			ST TempIndex2
+
+(** 		TcpPortReceiveDataBytesAll[TempIndex2] := serial_read.data[index]; **)
+			(* assign - Stmt *)
+			LD serial_read.data[index]
+			ST TcpPortReceiveDataBytesAll[TempIndex2]
+
+		(* for - By *)
+		LD 1
+		ADD index
+		ST index
+(** 	end_for; **)
+
+		JMP ODK_FOR_000000000000004
+
+		(* for - End *) 
+		ODK_END_FOR_000000000000004:
+
+		JMP ODK_END_IF_000000000000003
+
+(** end_if; **)
+	(* if - End *) 
+	ODK_SKIP_000000000000003_000000000000001:
+	ODK_END_IF_000000000000003:
+
+(**  **)
+(** TcpPort_CRC(cBuffer:=TcpPortReceiveDataBytesAll,CrcLength:=53); **)
+	(* call - Stmt *)
+	CAL TcpPort_CRC (
+		cBuffer := TcpPortReceiveDataBytesAll,
+		CrcLength := 53
+	)
+
+(**  **)
+(** if TcpPortReceiveDataBytesAll[1]=16#4A and TcpPortReceiveDataBytesAll[2]=16#54  **)
+(** 	and TcpPortReceiveDataBytesAll[54]=TcpPort_CRC.CrcLow and TcpPortReceiveDataBytesAll[55]=TcpPort_CRC.CrcHigh then **)
+	(* if - Cond *)
+	LD TcpPortReceiveDataBytesAll[1]
+	EQ 16#4A
+	AND ( TcpPortReceiveDataBytesAll[2]
+		EQ 16#54
+	)
+	AND ( TcpPortReceiveDataBytesAll[54]
+		EQ TcpPort_CRC.CrcLow
+	)
+	AND ( TcpPortReceiveDataBytesAll[55]
+		EQ TcpPort_CRC.CrcHigh
+	)
+	JMPCN ODK_SKIP_000000000000005_000000000000001
+
+		(* then - Stmts *)
+
+(** 	 **)
+(** 	MasterVehicleID := byte_to_dint(TcpPortReceiveDataBytesAll[3]); **)
+		(* assign - Stmt *)
+		LD TcpPortReceiveDataBytesAll[3]
+		byte_to_dint 
+		ST MasterVehicleID
+
+(** 	MasterTravelDir := byte_to_dint(TcpPortReceiveDataBytesAll[4]); **)
+		(* assign - Stmt *)
+		LD TcpPortReceiveDataBytesAll[4]
+		byte_to_dint 
+		ST MasterTravelDir
+
+(**  **)
+(** 	MasterFrontSetSpeed	:= int_to_dint(byte_to_int(TcpPortReceiveDataBytesAll[5])*256 + byte_to_int(TcpPortReceiveDataBytesAll[6]) ); **)
+		(* assign - Stmt *)
+		LD TcpPortReceiveDataBytesAll[5]
+		byte_to_int 
+		MUL 256
+		ADD ( TcpPortReceiveDataBytesAll[6]
+			byte_to_int 
+		)
+		int_to_dint 
+		ST MasterFrontSetSpeed
+
+(** 	 **)
+(** 	MasterFrontEncSpeed	:= int_to_dint(byte_to_int(TcpPortReceiveDataBytesAll[7])*256 + byte_to_int(TcpPortReceiveDataBytesAll[8]) ); **)
+		(* assign - Stmt *)
+		LD TcpPortReceiveDataBytesAll[7]
+		byte_to_int 
+		MUL 256
+		ADD ( TcpPortReceiveDataBytesAll[8]
+			byte_to_int 
+		)
+		int_to_dint 
+		ST MasterFrontEncSpeed
+
+(** 	 **)
+(** 	MasterFrontSetAngle	:= int_to_dint( byte_to_int(TcpPortReceiveDataBytesAll[9])*256 + byte_to_int(TcpPortReceiveDataBytesAll[10]) ); **)
+		(* assign - Stmt *)
+		LD TcpPortReceiveDataBytesAll[9]
+		byte_to_int 
+		MUL 256
+		ADD ( TcpPortReceiveDataBytesAll[10]
+			byte_to_int 
+		)
+		int_to_dint 
+		ST MasterFrontSetAngle
+
+(** 	MasterFrontEncAngle	:= int_to_dint(byte_to_int(TcpPortReceiveDataBytesAll[11])*256 + byte_to_int(TcpPortReceiveDataBytesAll[12]) ); **)
+		(* assign - Stmt *)
+		LD TcpPortReceiveDataBytesAll[11]
+		byte_to_int 
+		MUL 256
+		ADD ( TcpPortReceiveDataBytesAll[12]
+			byte_to_int 
+		)
+		int_to_dint 
+		ST MasterFrontEncAngle
+
+(**  **)
+(** 	MasterRearSetSpeed	:= int_to_dint(byte_to_int(TcpPortReceiveDataBytesAll[13])*256 + byte_to_int(TcpPortReceiveDataBytesAll[14]) ); **)
+		(* assign - Stmt *)
+		LD TcpPortReceiveDataBytesAll[13]
+		byte_to_int 
+		MUL 256
+		ADD ( TcpPortReceiveDataBytesAll[14]
+			byte_to_int 
+		)
+		int_to_dint 
+		ST MasterRearSetSpeed
+
+(** 	MasterRearEncSpeed	:= int_to_dint(byte_to_int(TcpPortReceiveDataBytesAll[15])*256 + byte_to_int(TcpPortReceiveDataBytesAll[16]) ); **)
+		(* assign - Stmt *)
+		LD TcpPortReceiveDataBytesAll[15]
+		byte_to_int 
+		MUL 256
+		ADD ( TcpPortReceiveDataBytesAll[16]
+			byte_to_int 
+		)
+		int_to_dint 
+		ST MasterRearEncSpeed
+
+(** 	 **)
+(** 	MasterRearSetAngle	:= int_to_dint(byte_to_int(TcpPortReceiveDataBytesAll[17])*256 + byte_to_int(TcpPortReceiveDataBytesAll[18]) ); **)
+		(* assign - Stmt *)
+		LD TcpPortReceiveDataBytesAll[17]
+		byte_to_int 
+		MUL 256
+		ADD ( TcpPortReceiveDataBytesAll[18]
+			byte_to_int 
+		)
+		int_to_dint 
+		ST MasterRearSetAngle
+
+(** 	MasterRearEncAngle	:= int_to_dint(byte_to_int(TcpPortReceiveDataBytesAll[19])*256 + byte_to_int(TcpPortReceiveDataBytesAll[20]) ); **)
+		(* assign - Stmt *)
+		LD TcpPortReceiveDataBytesAll[19]
+		byte_to_int 
+		MUL 256
+		ADD ( TcpPortReceiveDataBytesAll[20]
+			byte_to_int 
+		)
+		int_to_dint 
+		ST MasterRearEncAngle
+
+(** 	 **)
+(** 	MasterVirFrontSetSpeed	:= int_to_dint(byte_to_int(TcpPortReceiveDataBytesAll[21])*256 + byte_to_int(TcpPortReceiveDataBytesAll[22]) ); **)
+		(* assign - Stmt *)
+		LD TcpPortReceiveDataBytesAll[21]
+		byte_to_int 
+		MUL 256
+		ADD ( TcpPortReceiveDataBytesAll[22]
+			byte_to_int 
+		)
+		int_to_dint 
+		ST MasterVirFrontSetSpeed
+
+(** 	MasterVirFrontEncSpeed	:= int_to_dint(byte_to_int(TcpPortReceiveDataBytesAll[23])*256 + byte_to_int(TcpPortReceiveDataBytesAll[24]) ); **)
+		(* assign - Stmt *)
+		LD TcpPortReceiveDataBytesAll[23]
+		byte_to_int 
+		MUL 256
+		ADD ( TcpPortReceiveDataBytesAll[24]
+			byte_to_int 
+		)
+		int_to_dint 
+		ST MasterVirFrontEncSpeed
+
+(** 	 **)
+(** 	MasterVirFrontSetAngle	:= int_to_dint(byte_to_int(TcpPortReceiveDataBytesAll[25])*256 + byte_to_int(TcpPortReceiveDataBytesAll[26]) ); **)
+		(* assign - Stmt *)
+		LD TcpPortReceiveDataBytesAll[25]
+		byte_to_int 
+		MUL 256
+		ADD ( TcpPortReceiveDataBytesAll[26]
+			byte_to_int 
+		)
+		int_to_dint 
+		ST MasterVirFrontSetAngle
+
+(** 	MasterVirFrontEncAngle	:= int_to_dint(byte_to_int(TcpPortReceiveDataBytesAll[27])*256 + byte_to_int(TcpPortReceiveDataBytesAll[28]) ); **)
+		(* assign - Stmt *)
+		LD TcpPortReceiveDataBytesAll[27]
+		byte_to_int 
+		MUL 256
+		ADD ( TcpPortReceiveDataBytesAll[28]
+			byte_to_int 
+		)
+		int_to_dint 
+		ST MasterVirFrontEncAngle
+
+(**  **)
+(** 	MasterVirRearSetSpeed	:= int_to_dint(byte_to_int(TcpPortReceiveDataBytesAll[29])*256 + byte_to_int(TcpPortReceiveDataBytesAll[30]) ); **)
+		(* assign - Stmt *)
+		LD TcpPortReceiveDataBytesAll[29]
+		byte_to_int 
+		MUL 256
+		ADD ( TcpPortReceiveDataBytesAll[30]
+			byte_to_int 
+		)
+		int_to_dint 
+		ST MasterVirRearSetSpeed
+
+(** 	MasterVirRearEncSpeed	:= int_to_dint(byte_to_int(TcpPortReceiveDataBytesAll[31])*256 + byte_to_int(TcpPortReceiveDataBytesAll[32]) ); **)
+		(* assign - Stmt *)
+		LD TcpPortReceiveDataBytesAll[31]
+		byte_to_int 
+		MUL 256
+		ADD ( TcpPortReceiveDataBytesAll[32]
+			byte_to_int 
+		)
+		int_to_dint 
+		ST MasterVirRearEncSpeed
+
+(** 	 **)
+(** 	MasterVirRearSetAngle	:= int_to_dint(byte_to_int(TcpPortReceiveDataBytesAll[33])*256 + byte_to_int(TcpPortReceiveDataBytesAll[34]) ); **)
+		(* assign - Stmt *)
+		LD TcpPortReceiveDataBytesAll[33]
+		byte_to_int 
+		MUL 256
+		ADD ( TcpPortReceiveDataBytesAll[34]
+			byte_to_int 
+		)
+		int_to_dint 
+		ST MasterVirRearSetAngle
+
+(** 	MasterVirRearEncAngle	:= int_to_dint(byte_to_int(TcpPortReceiveDataBytesAll[35])*256 + byte_to_int(TcpPortReceiveDataBytesAll[36]) ); **)
+		(* assign - Stmt *)
+		LD TcpPortReceiveDataBytesAll[35]
+		byte_to_int 
+		MUL 256
+		ADD ( TcpPortReceiveDataBytesAll[36]
+			byte_to_int 
+		)
+		int_to_dint 
+		ST MasterVirRearEncAngle
+
+(** 	 **)
+(** 	MasterPositionX := byte_to_dint(TcpPortReceiveDataBytesAll[37])*167777216 + byte_to_dint(TcpPortReceiveDataBytesAll[38])*65536  **)
+(** 						+ byte_to_dint(TcpPortReceiveDataBytesAll[39])*256 + byte_to_dint(TcpPortReceiveDataBytesAll[40]) ; **)
+		(* assign - Stmt *)
+		LD TcpPortReceiveDataBytesAll[37]
+		byte_to_dint 
+		MUL 167777216
+		ADD ( TcpPortReceiveDataBytesAll[38]
+			byte_to_dint 
+			MUL 65536
+		)
+		ADD ( TcpPortReceiveDataBytesAll[39]
+			byte_to_dint 
+			MUL 256
+		)
+		ADD ( TcpPortReceiveDataBytesAll[40]
+			byte_to_dint 
+		)
+		ST MasterPositionX
+
+(**  **)
+(** 	MasterPositionY := byte_to_dint(TcpPortReceiveDataBytesAll[41])*167777216 + byte_to_dint(TcpPortReceiveDataBytesAll[42])*65536  **)
+(** 						+ byte_to_dint(TcpPortReceiveDataBytesAll[43])*256 + byte_to_dint(TcpPortReceiveDataBytesAll[44]) ; **)
+		(* assign - Stmt *)
+		LD TcpPortReceiveDataBytesAll[41]
+		byte_to_dint 
+		MUL 167777216
+		ADD ( TcpPortReceiveDataBytesAll[42]
+			byte_to_dint 
+			MUL 65536
+		)
+		ADD ( TcpPortReceiveDataBytesAll[43]
+			byte_to_dint 
+			MUL 256
+		)
+		ADD ( TcpPortReceiveDataBytesAll[44]
+			byte_to_dint 
+		)
+		ST MasterPositionY
+
+(** 					 **)
+(** 	MasterAngle2 := byte_to_dint(TcpPortReceiveDataBytesAll[45])*256 + byte_to_dint(TcpPortReceiveDataBytesAll[46]) ;				 **)
+		(* assign - Stmt *)
+		LD TcpPortReceiveDataBytesAll[45]
+		byte_to_dint 
+		MUL 256
+		ADD ( TcpPortReceiveDataBytesAll[46]
+			byte_to_dint 
+		)
+		ST MasterAngle2
+
+(** 					 **)
+(** 	MasterOpCode  := byte_to_dint(TcpPortReceiveDataBytesAll[47]); **)
+		(* assign - Stmt *)
+		LD TcpPortReceiveDataBytesAll[47]
+		byte_to_dint 
+		ST MasterOpCode
+
+(** 	MasterOpWorking  := byte_to_bool(TcpPortReceiveDataBytesAll[48]); **)
+		(* assign - Stmt *)
+		LD TcpPortReceiveDataBytesAll[48]
+		byte_to_bool 
+		ST MasterOpWorking
+
+(** 	 **)
+(** 	MasterSetSpeed := byte_to_dint(TcpPortReceiveDataBytesAll[49])*256 + byte_to_dint(TcpPortReceiveDataBytesAll[50]) ; **)
+		(* assign - Stmt *)
+		LD TcpPortReceiveDataBytesAll[49]
+		byte_to_dint 
+		MUL 256
+		ADD ( TcpPortReceiveDataBytesAll[50]
+			byte_to_dint 
+		)
+		ST MasterSetSpeed
+
+(** 	 **)
+(** 	MasterFlag := byte_to_dint(TcpPortReceiveDataBytesAll[51]); **)
+		(* assign - Stmt *)
+		LD TcpPortReceiveDataBytesAll[51]
+		byte_to_dint 
+		ST MasterFlag
+
+(** 	 **)
+(** 	MasterHeartBeat := byte_to_dint(TcpPortReceiveDataBytesAll[52]); **)
+		(* assign - Stmt *)
+		LD TcpPortReceiveDataBytesAll[52]
+		byte_to_dint 
+		ST MasterHeartBeat
+
+(** 	 **)
+(** 	MasterErrorStop := byte_to_bool(TcpPortReceiveDataBytesAll[53]); **)
+		(* assign - Stmt *)
+		LD TcpPortReceiveDataBytesAll[53]
+		byte_to_bool 
+		ST MasterErrorStop
+
+		JMP ODK_END_IF_000000000000005
+
+(** 		 **)
+(** end_if; **)
+	(* if - End *) 
+	ODK_SKIP_000000000000005_000000000000001:
+	ODK_END_IF_000000000000005:
+
+(**  **)
+(** NoHeartBeat := MasterHeartBeat=PreMasterHeartBeat and MasterFlag=1 and NDC8.OMPLC.GroupFlag=1; **)
+	(* assign - Stmt *)
+	LD MasterHeartBeat
+	EQ PreMasterHeartBeat
+	AND ( MasterFlag
+		EQ 1
+	)
+	AND ( NDC8.OMPLC.GroupFlag
+		EQ 1
+	)
+	ST NoHeartBeat
+
+(** NoHeartBeatTon(IN:=NoHeartBeat,PT:=t#2s); **)
+	(* call - Stmt *)
+	CAL NoHeartBeatTon (
+		IN := NoHeartBeat,
+		PT := t#2s
+	)
+
+(** if NoHeartBeatTon.Q then **)
+	(* if - Cond *)
+	LD NoHeartBeatTon.Q
+	JMPCN ODK_SKIP_000000000000006_000000000000001
+
+		(* then - Stmts *)
+
+(** 	HeartBeatTimeOut := true; **)
+		(* assign - Stmt *)
+		LD true
+		ST HeartBeatTimeOut
+
+		JMP ODK_END_IF_000000000000006
+
+(** else **)
+	(* else *) 
+	ODK_SKIP_000000000000006_000000000000001:
+
+		(* else - Stmts *)
+
+(** 	HeartBeatTimeOut := false; **)
+		(* assign - Stmt *)
+		LD false
+		ST HeartBeatTimeOut
+
+(** end_if; **)
+	(* if - End *) 
+	ODK_END_IF_000000000000006:
+
+(**  **)
+(** PreMasterHeartBeat := MasterHeartBeat; **)
+	(* assign - Stmt *)
+	LD MasterHeartBeat
+	ST PreMasterHeartBeat
+
+(**  **)
+(** NDC8.UserDefined.HeartBeatTimeOut := HeartBeatTimeOut; **)
+	(* assign - Stmt *)
+	LD HeartBeatTimeOut
+	ST NDC8.UserDefined.HeartBeatTimeOut
+
+(** NDC8.UserDefined.MasterErrorStop := MasterErrorStop; **)
+	(* assign - Stmt *)
+	LD MasterErrorStop
+	ST NDC8.UserDefined.MasterErrorStop
+
+(**  **)
+
+END_FUNCTION_BLOCK

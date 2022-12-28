@@ -1,0 +1,724 @@
+FUNCTION_BLOCK TCPPORTSEND_FB
+VAR_EXTERNAL
+NDC8 : NDC8_T;
+END_VAR
+
+VAR_INPUT
+
+END_VAR
+
+VAR_OUTPUT
+
+END_VAR
+
+VAR
+serial_write  : NDC8_SERIAL_WRITE;
+TcpPort_CRC : TcpPort_CRC_FB;
+tempHigh_X,tempHigh_Y,HeartBeat : dint;
+ErrorStop,OperationWorking : bool;
+index,index1,index2 : dint;
+END_VAR
+
+(*Automatically declared*)
+VAR_EXTERNAL
+	TCPPORTSENDDATABYTESHEAD : ARRAY [1..32] OF Byte;
+	TCPPORTSENDDATABYTESALL : ARRAY [1..100] OF Byte;
+	TCPPORTSENDDATABYTES2 : ARRAY [1..32] OF Byte;
+	TCPPORTSENDDATABYTES1 : ARRAY [1..32] OF Byte;
+	TCPPORTSENDDATABYTESCRC : ARRAY [1..32] OF Byte;
+END_VAR
+(**  **)
+(**  **)
+(** TcpPortSendDataBytesHead[1] := 16#4A; **)
+	(* assign - Stmt *)
+	LD 16#4A
+	ST TcpPortSendDataBytesHead[1]
+
+(** TcpPortSendDataBytesHead[2] := 16#54; **)
+	(* assign - Stmt *)
+	LD 16#54
+	ST TcpPortSendDataBytesHead[2]
+
+(**  **)
+(** TcpPortSendDataBytes1[1] := dint_to_byte(NDC8.Vehicle.VehicleID); **)
+	(* assign - Stmt *)
+	LD NDC8.Vehicle.VehicleID
+	dint_to_byte 
+	ST TcpPortSendDataBytes1[1]
+
+(**  **)
+(** TcpPortSendDataBytes1[2] := dint_to_byte(NDC8.VehicleControl.TravelDir); **)
+	(* assign - Stmt *)
+	LD NDC8.VehicleControl.TravelDir
+	dint_to_byte 
+	ST TcpPortSendDataBytes1[2]
+
+(**  **)
+(** TcpPortSendDataBytes1[3] := word_to_byte(SHR(dint_to_word(NDC8.UserDefined.FrontSetSpeed),8)); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.FrontSetSpeed
+	dint_to_word 
+	SHR 8
+	word_to_byte 
+	ST TcpPortSendDataBytes1[3]
+
+(** TcpPortSendDataBytes1[4] := dint_to_byte(NDC8.UserDefined.FrontSetSpeed); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.FrontSetSpeed
+	dint_to_byte 
+	ST TcpPortSendDataBytes1[4]
+
+(**  **)
+(** TcpPortSendDataBytes1[5] := word_to_byte(SHR(dint_to_word(NDC8.UserDefined.FrontEncSpeed),8)); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.FrontEncSpeed
+	dint_to_word 
+	SHR 8
+	word_to_byte 
+	ST TcpPortSendDataBytes1[5]
+
+(** TcpPortSendDataBytes1[6] := dint_to_byte(NDC8.UserDefined.FrontEncSpeed); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.FrontEncSpeed
+	dint_to_byte 
+	ST TcpPortSendDataBytes1[6]
+
+(**  **)
+(** TcpPortSendDataBytes1[7] := word_to_byte(SHR(dint_to_word(NDC8.UserDefined.FrontSetAngle),8)); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.FrontSetAngle
+	dint_to_word 
+	SHR 8
+	word_to_byte 
+	ST TcpPortSendDataBytes1[7]
+
+(** TcpPortSendDataBytes1[8] := dint_to_byte(NDC8.UserDefined.FrontSetAngle); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.FrontSetAngle
+	dint_to_byte 
+	ST TcpPortSendDataBytes1[8]
+
+(**  **)
+(** TcpPortSendDataBytes1[9] := word_to_byte(SHR(dint_to_word(NDC8.UserDefined.FrontEncAngle),8)); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.FrontEncAngle
+	dint_to_word 
+	SHR 8
+	word_to_byte 
+	ST TcpPortSendDataBytes1[9]
+
+(** TcpPortSendDataBytes1[10] := dint_to_byte(NDC8.UserDefined.FrontEncAngle); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.FrontEncAngle
+	dint_to_byte 
+	ST TcpPortSendDataBytes1[10]
+
+(**  **)
+(** TcpPortSendDataBytes1[11] := word_to_byte(SHR(dint_to_word(NDC8.UserDefined.RearSetSpeed),8)); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.RearSetSpeed
+	dint_to_word 
+	SHR 8
+	word_to_byte 
+	ST TcpPortSendDataBytes1[11]
+
+(** TcpPortSendDataBytes1[12] := dint_to_byte(NDC8.UserDefined.RearSetSpeed); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.RearSetSpeed
+	dint_to_byte 
+	ST TcpPortSendDataBytes1[12]
+
+(**  **)
+(** TcpPortSendDataBytes1[13] := word_to_byte(SHR(dint_to_word(NDC8.UserDefined.RearEncSpeed),8)); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.RearEncSpeed
+	dint_to_word 
+	SHR 8
+	word_to_byte 
+	ST TcpPortSendDataBytes1[13]
+
+(** TcpPortSendDataBytes1[14] := dint_to_byte(NDC8.UserDefined.RearEncSpeed); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.RearEncSpeed
+	dint_to_byte 
+	ST TcpPortSendDataBytes1[14]
+
+(**  **)
+(** TcpPortSendDataBytes1[15] := word_to_byte(SHR(dint_to_word(NDC8.UserDefined.RearSetAngle),8)); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.RearSetAngle
+	dint_to_word 
+	SHR 8
+	word_to_byte 
+	ST TcpPortSendDataBytes1[15]
+
+(** TcpPortSendDataBytes1[16] := dint_to_byte(NDC8.UserDefined.RearSetAngle); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.RearSetAngle
+	dint_to_byte 
+	ST TcpPortSendDataBytes1[16]
+
+(**  **)
+(** TcpPortSendDataBytes1[17] := word_to_byte(SHR(dint_to_word(NDC8.UserDefined.RearEncAngle),8)); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.RearEncAngle
+	dint_to_word 
+	SHR 8
+	word_to_byte 
+	ST TcpPortSendDataBytes1[17]
+
+(** TcpPortSendDataBytes1[18] := dint_to_byte(NDC8.UserDefined.RearEncAngle); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.RearEncAngle
+	dint_to_byte 
+	ST TcpPortSendDataBytes1[18]
+
+(**  **)
+(** TcpPortSendDataBytes1[19] := word_to_byte(SHR(dint_to_word(NDC8.UserDefined.VirFrontSetSpeed),8)); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.VirFrontSetSpeed
+	dint_to_word 
+	SHR 8
+	word_to_byte 
+	ST TcpPortSendDataBytes1[19]
+
+(** TcpPortSendDataBytes1[20] := dint_to_byte(NDC8.UserDefined.VirFrontSetSpeed); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.VirFrontSetSpeed
+	dint_to_byte 
+	ST TcpPortSendDataBytes1[20]
+
+(**  **)
+(** TcpPortSendDataBytes1[21] := word_to_byte(SHR(dint_to_word(NDC8.UserDefined.VirFrontEncSpeed),8)); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.VirFrontEncSpeed
+	dint_to_word 
+	SHR 8
+	word_to_byte 
+	ST TcpPortSendDataBytes1[21]
+
+(** TcpPortSendDataBytes1[22] := dint_to_byte(NDC8.UserDefined.VirFrontEncSpeed); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.VirFrontEncSpeed
+	dint_to_byte 
+	ST TcpPortSendDataBytes1[22]
+
+(**  **)
+(** TcpPortSendDataBytes1[23] := word_to_byte(SHR(dint_to_word(NDC8.UserDefined.VirFrontSetAngle),8)); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.VirFrontSetAngle
+	dint_to_word 
+	SHR 8
+	word_to_byte 
+	ST TcpPortSendDataBytes1[23]
+
+(** TcpPortSendDataBytes1[24] := dint_to_byte(NDC8.UserDefined.VirFrontSetAngle); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.VirFrontSetAngle
+	dint_to_byte 
+	ST TcpPortSendDataBytes1[24]
+
+(**  **)
+(** TcpPortSendDataBytes1[25] := word_to_byte(SHR(dint_to_word(NDC8.UserDefined.VirFrontEncAngle),8)); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.VirFrontEncAngle
+	dint_to_word 
+	SHR 8
+	word_to_byte 
+	ST TcpPortSendDataBytes1[25]
+
+(** TcpPortSendDataBytes1[26] := dint_to_byte(NDC8.UserDefined.VirFrontEncAngle); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.VirFrontEncAngle
+	dint_to_byte 
+	ST TcpPortSendDataBytes1[26]
+
+(**  **)
+(** TcpPortSendDataBytes1[27] := word_to_byte(SHR(dint_to_word(NDC8.UserDefined.VirRearSetSpeed),8)); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.VirRearSetSpeed
+	dint_to_word 
+	SHR 8
+	word_to_byte 
+	ST TcpPortSendDataBytes1[27]
+
+(** TcpPortSendDataBytes1[28] := dint_to_byte(NDC8.UserDefined.VirRearSetSpeed); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.VirRearSetSpeed
+	dint_to_byte 
+	ST TcpPortSendDataBytes1[28]
+
+(**  **)
+(** TcpPortSendDataBytes1[29] := word_to_byte(SHR(dint_to_word(NDC8.UserDefined.VirRearEncSpeed),8)); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.VirRearEncSpeed
+	dint_to_word 
+	SHR 8
+	word_to_byte 
+	ST TcpPortSendDataBytes1[29]
+
+(** TcpPortSendDataBytes1[30] := dint_to_byte(NDC8.UserDefined.VirRearEncSpeed); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.VirRearEncSpeed
+	dint_to_byte 
+	ST TcpPortSendDataBytes1[30]
+
+(**  **)
+(** TcpPortSendDataBytes1[31] := word_to_byte(SHR(dint_to_word(NDC8.UserDefined.VirRearSetAngle),8)); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.VirRearSetAngle
+	dint_to_word 
+	SHR 8
+	word_to_byte 
+	ST TcpPortSendDataBytes1[31]
+
+(** TcpPortSendDataBytes1[32] := dint_to_byte(NDC8.UserDefined.VirRearSetAngle); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.VirRearSetAngle
+	dint_to_byte 
+	ST TcpPortSendDataBytes1[32]
+
+(**  **)
+(**  **)
+(** TcpPortSendDataBytes2[1] := word_to_byte(SHR(dint_to_word(NDC8.UserDefined.VirRearEncAngle),8)); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.VirRearEncAngle
+	dint_to_word 
+	SHR 8
+	word_to_byte 
+	ST TcpPortSendDataBytes2[1]
+
+(** TcpPortSendDataBytes2[2] := dint_to_byte(NDC8.UserDefined.VirRearEncAngle); **)
+	(* assign - Stmt *)
+	LD NDC8.UserDefined.VirRearEncAngle
+	dint_to_byte 
+	ST TcpPortSendDataBytes2[2]
+
+(**  **)
+(**  **)
+(** tempHigh_X := NDC8.Position.X / 65536; **)
+	(* assign - Stmt *)
+	LD NDC8.Position.X
+	DIV 65536
+	ST tempHigh_X
+
+(** TcpPortSendDataBytes2[3] := word_to_byte(SHR(dint_to_word(tempHigh_X),8)); **)
+	(* assign - Stmt *)
+	LD tempHigh_X
+	dint_to_word 
+	SHR 8
+	word_to_byte 
+	ST TcpPortSendDataBytes2[3]
+
+(** TcpPortSendDataBytes2[4] := dint_to_byte(tempHigh_X); **)
+	(* assign - Stmt *)
+	LD tempHigh_X
+	dint_to_byte 
+	ST TcpPortSendDataBytes2[4]
+
+(** TcpPortSendDataBytes2[5] := word_to_byte(SHR(dint_to_word(NDC8.Position.X),8)); **)
+	(* assign - Stmt *)
+	LD NDC8.Position.X
+	dint_to_word 
+	SHR 8
+	word_to_byte 
+	ST TcpPortSendDataBytes2[5]
+
+(** TcpPortSendDataBytes2[6] := dint_to_byte(NDC8.Position.X); **)
+	(* assign - Stmt *)
+	LD NDC8.Position.X
+	dint_to_byte 
+	ST TcpPortSendDataBytes2[6]
+
+(**  **)
+(** tempHigh_Y := NDC8.Position.Y / 65536; **)
+	(* assign - Stmt *)
+	LD NDC8.Position.Y
+	DIV 65536
+	ST tempHigh_Y
+
+(** TcpPortSendDataBytes2[7] := word_to_byte(SHR(dint_to_word(tempHigh_Y),8)); **)
+	(* assign - Stmt *)
+	LD tempHigh_Y
+	dint_to_word 
+	SHR 8
+	word_to_byte 
+	ST TcpPortSendDataBytes2[7]
+
+(** TcpPortSendDataBytes2[8] := dint_to_byte(tempHigh_Y); **)
+	(* assign - Stmt *)
+	LD tempHigh_Y
+	dint_to_byte 
+	ST TcpPortSendDataBytes2[8]
+
+(** TcpPortSendDataBytes2[9] := word_to_byte(SHR(dint_to_word(NDC8.Position.Y),8)); **)
+	(* assign - Stmt *)
+	LD NDC8.Position.Y
+	dint_to_word 
+	SHR 8
+	word_to_byte 
+	ST TcpPortSendDataBytes2[9]
+
+(** TcpPortSendDataBytes2[10] := dint_to_byte(NDC8.Position.Y); **)
+	(* assign - Stmt *)
+	LD NDC8.Position.Y
+	dint_to_byte 
+	ST TcpPortSendDataBytes2[10]
+
+(**  **)
+(** TcpPortSendDataBytes2[11] := word_to_byte(SHR(dint_to_word(NDC8.Position.Angle2),8)); **)
+	(* assign - Stmt *)
+	LD NDC8.Position.Angle2
+	dint_to_word 
+	SHR 8
+	word_to_byte 
+	ST TcpPortSendDataBytes2[11]
+
+(** TcpPortSendDataBytes2[12] := dint_to_byte(NDC8.Position.Angle2); **)
+	(* assign - Stmt *)
+	LD NDC8.Position.Angle2
+	dint_to_byte 
+	ST TcpPortSendDataBytes2[12]
+
+(**  **)
+(** TcpPortSendDataBytes2[13] := dint_to_byte(NDC8.LoadOperation.OperationCode); **)
+	(* assign - Stmt *)
+	LD NDC8.LoadOperation.OperationCode
+	dint_to_byte 
+	ST TcpPortSendDataBytes2[13]
+
+(** TcpPortSendDataBytes2[14] := bool_to_byte(OperationWorking); **)
+	(* assign - Stmt *)
+	LD OperationWorking
+	bool_to_byte 
+	ST TcpPortSendDataBytes2[14]
+
+(**  **)
+(** TcpPortSendDataBytes2[15] := word_to_byte(SHR(dint_to_word(NDC8.VehicleControl.SetSpeed),8)); **)
+	(* assign - Stmt *)
+	LD NDC8.VehicleControl.SetSpeed
+	dint_to_word 
+	SHR 8
+	word_to_byte 
+	ST TcpPortSendDataBytes2[15]
+
+(** TcpPortSendDataBytes2[16] := dint_to_byte(NDC8.VehicleControl.SetSpeed); **)
+	(* assign - Stmt *)
+	LD NDC8.VehicleControl.SetSpeed
+	dint_to_byte 
+	ST TcpPortSendDataBytes2[16]
+
+(**  **)
+(** TcpPortSendDataBytes2[17] := int_to_byte(NDC8.OMPLC.GroupFlag); **)
+	(* assign - Stmt *)
+	LD NDC8.OMPLC.GroupFlag
+	int_to_byte 
+	ST TcpPortSendDataBytes2[17]
+
+(**  **)
+(** TcpPortSendDataBytes2[18] := dint_to_byte(HeartBeat); **)
+	(* assign - Stmt *)
+	LD HeartBeat
+	dint_to_byte 
+	ST TcpPortSendDataBytes2[18]
+
+(**  **)
+(** TcpPortSendDataBytes2[19] := bool_to_byte(ErrorStop); **)
+	(* assign - Stmt *)
+	LD ErrorStop
+	bool_to_byte 
+	ST TcpPortSendDataBytes2[19]
+
+(**  **)
+(**  **)
+(** For index:=1 to 2 by 1 do **)
+	(* for - Init *)
+	LD 1
+	ST index
+	EQ 2
+	JMPC ODK_FOR_STMTS_000000000000001
+
+	(* for - Cond *)
+	ODK_FOR_000000000000001:
+
+	LD 1
+	GT 2
+	JMPC ODK_FOR_DOWN_000000000000001
+
+	LD 0
+	GT 1
+	JMPC ODK_END_FOR_000000000000001
+
+	LD 2
+	LT index
+	JMPC ODK_END_FOR_000000000000001
+	JMP ODK_FOR_STMTS_000000000000001
+
+	ODK_FOR_DOWN_000000000000001:
+
+	LD 2
+	GT index
+	JMPC ODK_END_FOR_000000000000001
+
+	LD 0
+	LT 1
+	JMPC ODK_END_FOR_000000000000001
+
+		(* for - Stmts *)
+		ODK_FOR_STMTS_000000000000001:
+
+(** 	TcpPortSendDataBytesAll[index] := TcpPortSendDataBytesHead[index]; **)
+		(* assign - Stmt *)
+		LD TcpPortSendDataBytesHead[index]
+		ST TcpPortSendDataBytesAll[index]
+
+	(* for - By *)
+	LD 1
+	ADD index
+	ST index
+(** end_for; **)
+
+	JMP ODK_FOR_000000000000001
+
+	(* for - End *) 
+	ODK_END_FOR_000000000000001:
+
+(**  **)
+(** For index:=3 to 34 by 1 do **)
+	(* for - Init *)
+	LD 3
+	ST index
+	EQ 34
+	JMPC ODK_FOR_STMTS_000000000000002
+
+	(* for - Cond *)
+	ODK_FOR_000000000000002:
+
+	LD 3
+	GT 34
+	JMPC ODK_FOR_DOWN_000000000000002
+
+	LD 0
+	GT 1
+	JMPC ODK_END_FOR_000000000000002
+
+	LD 34
+	LT index
+	JMPC ODK_END_FOR_000000000000002
+	JMP ODK_FOR_STMTS_000000000000002
+
+	ODK_FOR_DOWN_000000000000002:
+
+	LD 34
+	GT index
+	JMPC ODK_END_FOR_000000000000002
+
+	LD 0
+	LT 1
+	JMPC ODK_END_FOR_000000000000002
+
+		(* for - Stmts *)
+		ODK_FOR_STMTS_000000000000002:
+
+(** 	index1 := index - 2 ; **)
+		(* assign - Stmt *)
+		LD index
+		SUB 2
+		ST index1
+
+(** 	TcpPortSendDataBytesAll[index] := TcpPortSendDataBytes1[index1]; **)
+		(* assign - Stmt *)
+		LD TcpPortSendDataBytes1[index1]
+		ST TcpPortSendDataBytesAll[index]
+
+	(* for - By *)
+	LD 1
+	ADD index
+	ST index
+(** end_for; **)
+
+	JMP ODK_FOR_000000000000002
+
+	(* for - End *) 
+	ODK_END_FOR_000000000000002:
+
+(**  **)
+(** For index:=35 to 53 by 1 do **)
+	(* for - Init *)
+	LD 35
+	ST index
+	EQ 53
+	JMPC ODK_FOR_STMTS_000000000000003
+
+	(* for - Cond *)
+	ODK_FOR_000000000000003:
+
+	LD 35
+	GT 53
+	JMPC ODK_FOR_DOWN_000000000000003
+
+	LD 0
+	GT 1
+	JMPC ODK_END_FOR_000000000000003
+
+	LD 53
+	LT index
+	JMPC ODK_END_FOR_000000000000003
+	JMP ODK_FOR_STMTS_000000000000003
+
+	ODK_FOR_DOWN_000000000000003:
+
+	LD 53
+	GT index
+	JMPC ODK_END_FOR_000000000000003
+
+	LD 0
+	LT 1
+	JMPC ODK_END_FOR_000000000000003
+
+		(* for - Stmts *)
+		ODK_FOR_STMTS_000000000000003:
+
+(** 	index2 := index - 34 ; **)
+		(* assign - Stmt *)
+		LD index
+		SUB 34
+		ST index2
+
+(** 	TcpPortSendDataBytesAll[index] := TcpPortSendDataBytes2[index2]; **)
+		(* assign - Stmt *)
+		LD TcpPortSendDataBytes2[index2]
+		ST TcpPortSendDataBytesAll[index]
+
+	(* for - By *)
+	LD 1
+	ADD index
+	ST index
+(** end_for; **)
+
+	JMP ODK_FOR_000000000000003
+
+	(* for - End *) 
+	ODK_END_FOR_000000000000003:
+
+(**  **)
+(**  **)
+(** TcpPort_CRC(cBuffer:=TcpPortSendDataBytesAll,CrcLength:=53); **)
+	(* call - Stmt *)
+	CAL TcpPort_CRC (
+		cBuffer := TcpPortSendDataBytesAll,
+		CrcLength := 53
+	)
+
+(** TcpPortSendDataBytesCrc[1] := TcpPort_CRC.CrcLow; **)
+	(* assign - Stmt *)
+	LD TcpPort_CRC.CrcLow
+	ST TcpPortSendDataBytesCrc[1]
+
+(** TcpPortSendDataBytesCrc[2] := TcpPort_CRC.CrcHigh; **)
+	(* assign - Stmt *)
+	LD TcpPort_CRC.CrcHigh
+	ST TcpPortSendDataBytesCrc[2]
+
+(**  **)
+(** serial_write( port:='COM5',data:=TcpPortSendDataBytesHead,length:=2 ); **)
+	(* call - Stmt *)
+	CAL serial_write (
+		port := 'COM5',
+		data := TcpPortSendDataBytesHead,
+		length := 2
+	)
+
+(** serial_write( port:='COM5',data:=TcpPortSendDataBytes1,length:=32 ); **)
+	(* call - Stmt *)
+	CAL serial_write (
+		port := 'COM5',
+		data := TcpPortSendDataBytes1,
+		length := 32
+	)
+
+(** serial_write( port:='COM5',data:=TcpPortSendDataBytes2,length:=19 ); **)
+	(* call - Stmt *)
+	CAL serial_write (
+		port := 'COM5',
+		data := TcpPortSendDataBytes2,
+		length := 19
+	)
+
+(** serial_write( port:='COM5',data:=TcpPortSendDataBytesCrc,length:=2 ); **)
+	(* call - Stmt *)
+	CAL serial_write (
+		port := 'COM5',
+		data := TcpPortSendDataBytesCrc,
+		length := 2
+	)
+
+(** serial_write( port:='COM5',data:=TcpPortSendDataBytesHead,length:=0 ); **)
+	(* call - Stmt *)
+	CAL serial_write (
+		port := 'COM5',
+		data := TcpPortSendDataBytesHead,
+		length := 0
+	)
+
+(**  **)
+(**  **)
+(** if HeartBeat=0 then **)
+	(* if - Cond *)
+	LD HeartBeat
+	EQ 0
+	JMPCN ODK_SKIP_000000000000004_000000000000001
+
+		(* then - Stmts *)
+
+(** 	HeartBeat := 1; **)
+		(* assign - Stmt *)
+		LD 1
+		ST HeartBeat
+
+		JMP ODK_END_IF_000000000000004
+
+(** elsif HeartBeat=1 then **)
+	(* elseif - Cond *) 
+	ODK_SKIP_000000000000004_000000000000001:
+	LD HeartBeat
+	EQ 1
+	JMPCN ODK_SKIP_000000000000004_000000000000002
+
+		(* elsif - Stmts *)
+
+(** 	HeartBeat := 0; **)
+		(* assign - Stmt *)
+		LD 0
+		ST HeartBeat
+
+		JMP ODK_END_IF_000000000000004
+
+(** end_if; **)
+	(* if - End *) 
+	ODK_SKIP_000000000000004_000000000000002:
+	ODK_END_IF_000000000000004:
+
+(**  **)
+(** ErrorStop := NDC8.VehicleControl.Stop or NDC8.VehicleControl.EStop or NDC8.VehicleControl.QuickStop **)
+(** 				or NDC8.CanOpenMaster.NMTState<>5 or NDC8.CanOpenMaster.State<>0 ; **)
+	(* assign - Stmt *)
+	LD NDC8.VehicleControl.Stop
+	OR NDC8.VehicleControl.EStop
+	OR NDC8.VehicleControl.QuickStop
+	OR ( NDC8.CanOpenMaster.NMTState
+		NE 5
+	)
+	OR ( NDC8.CanOpenMaster.State
+		NE 0
+	)
+	ST ErrorStop
+
+(**  **)
+(** {*OperationWorking := OUTPUT.PlatRaise and NDC8.VehicleControl.OperationMode=0;*} **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+
+END_FUNCTION_BLOCK

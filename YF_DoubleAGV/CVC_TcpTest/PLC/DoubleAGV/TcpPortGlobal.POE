@@ -1,0 +1,38 @@
+$BEGIN_IT_HEADER
+GLOBALDEFINITIONS = 1 
+$END_IT_HEADER
+PROGRAM TcpPortGlobal
+VAR_GLOBAL
+TcpPortSendDataBytesHead : Array[1..32] of Byte;
+TcpPortSendDataBytes1 : Array[1..32] of Byte;
+TcpPortSendDataBytes2 : Array[1..32] of Byte;
+TcpPortSendDataBytesCrc : Array[1..32] of Byte;
+TcpPortSendDataBytesAll : Array[1..100] of Byte;
+TcpPortReceiveDataBytesAll : Array[1..100] of Byte;
+MasterVehicleID : dint;
+MasterTravelDir : dint;
+MasterFrontSetSpeed,MasterFrontSetAngle,MasterFrontEncAngle,MasterFrontEncSpeed  : dint;
+MasterRearSetSpeed,MasterRearEncSpeed,MasterRearSetAngle,MasterRearEncAngle      : dint;
+MasterVirFrontSetSpeed,MasterVirFrontEncSpeed,MasterVirFrontSetAngle,MasterVirFrontEncAngle : dint;
+MasterVirRearSetSpeed,MasterVirRearEncSpeed,MasterVirRearSetAngle,MasterVirRearEncAngle : dint;
+MasterPositionX : dint;
+MasterPositionY : dint;
+MasterAngle2 : dint;
+MasterDistOpPoint : dint;
+MasterOpCode : dint;
+MasterRemainDis : dint;
+MasterSetSpeed : dint;
+MasterFlag : dint;
+MasterHeartBeat : dint;
+MasterErrorStop : bool;
+MasterOpWorking : bool;
+HeartBeatTimeOut : bool;
+
+CalculateSpeed,CompenstateSpeed : dint;
+END_VAR
+
+
+
+
+
+END_PROGRAM

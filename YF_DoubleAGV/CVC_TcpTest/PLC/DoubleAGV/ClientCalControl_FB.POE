@@ -1,0 +1,1056 @@
+FUNCTION_BLOCK ClientCalControl_FB
+VAR_EXTERNAL
+NDC8 : NDC8_T;
+END_VAR
+
+VAR_INPUT
+
+END_VAR
+
+VAR_OUTPUT
+
+END_VAR
+
+VAR
+DevDist,IdevDist,Icount,PreDevDist: dint;
+P_Scale,I_Scale,D_Scale : real;
+PP,PI,PD : real;
+P_Curve_Scale,I_Curve_Scale,D_Curve_Scale : real;
+PP_Curve,PI_Curve,PD_Curve : real;
+FlagCount,OverCount : dint;
+Flag : bool;
+DevX,PreDevX,DdevDist,ClientX : dint;
+PreMasterPositionX,PreMasterPositionY,PreClientPositionX,PreClientPositionY : dint;
+AngleScale : real;
+END_VAR
+
+(*Automatically declared*)
+VAR_EXTERNAL
+	MASTERPOSITIONY : dint;
+	CALCULATESPEED : dint;
+	MASTERSETSPEED : dint;
+	MASTERFLAG : dint;
+	COMPENSTATESPEED : dint;
+	MASTERANGLE2 : dint;
+	MASTERPOSITIONX : dint;
+END_VAR
+(**  **)
+(**  **)
+(** if NDC8.OMPLC.GroupFlag=1 and MasterFlag=1 then **)
+	(* if - Cond *)
+	LD NDC8.OMPLC.GroupFlag
+	EQ 1
+	AND ( MasterFlag
+		EQ 1
+	)
+	JMPCN ODK_SKIP_000000000000001_000000000000001
+
+		(* then - Stmts *)
+
+(**  **)
+(** 	if NDC8.SegmentTrigger.LeftTurn or NDC8.SegmentTrigger.RightTurn then **)
+		(* if - Cond *)
+		LD NDC8.SegmentTrigger.LeftTurn
+		OR NDC8.SegmentTrigger.RightTurn
+		JMPCN ODK_SKIP_000000000000002_000000000000001
+
+			(* then - Stmts *)
+
+(** 		FlagCount := 1; **)
+			(* assign - Stmt *)
+			LD 1
+			ST FlagCount
+
+(** 		 **)
+(** 	{*	if dint_to_real(MasterAngle2)/100.0>=(180.0-VV1) and dint_to_real(MasterAngle2)/100.0<=(180.0+VV1) then **)
+(** 			AngleScale := (9496.0/5752.0 - 1.0)/VV1 * abs(abs((dint_to_real(MasterAngle2)/100.0-180.0))-VV1); **)
+(** 		elsif dint_to_real(MasterAngle2)/100.0>=(270.0-VV1) and dint_to_real(MasterAngle2)/100.0<=(270.0+VV1) then **)
+(** 			AngleScale := (9496.0/5752.0 - 1.0)/VV1 * abs(abs((dint_to_real(MasterAngle2)/100.0-270.0))-VV1); **)
+(** 		else **)
+(** 			AngleScale := 0.0; **)
+(** 		end_if; **)
+(** 		 **)
+(** 		if NDC8.SegmentTrigger.Value=1 then **)
+(** 			SegmentAngle := 0; **)
+(** 			if dint_to_real(MasterAngle2)/100.0>=(360.0-VV1) and dint_to_real(MasterAngle2)/100.0<=(0.0+VV1) then **)
+(** 				AngleScale := (9496.0/5752.0 - 1.0)/VV1 * abs(abs((dint_to_real(MasterAngle2)/100.0-180.0))-VV1); **)
+(** 			elsif dint_to_real(MasterAngle2)/100.0>=(90.0-VV1) and dint_to_real(MasterAngle2)/100.0<=(90.0+VV1) then **)
+(** 				AngleScale := (9496.0/5752.0 - 1.0)/VV1 * abs(abs((dint_to_real(MasterAngle2)/100.0-270.0))-VV1); **)
+(** 			else **)
+(** 				AngleScale := 0.0; **)
+(** 			end_if; **)
+(** 		elsif NDC8.SegmentTrigger.Value=2 then **)
+(** 			SegmentAngle := 90; **)
+(** 		elsif NDC8.SegmentTrigger.Value=3 then **)
+(** 			SegmentAngle := 180; **)
+(** 		elsif NDC8.SegmentTrigger.Value=4 then **)
+(** 			SegmentAngle := 270; **)
+(** 		end_if; **)
+(** 		 **)
+(** 		if dint_to_real(MasterAngle2)/100.0>=(180.0-VV1) and dint_to_real(MasterAngle2)/100.0<=(180.0+VV1) then **)
+(** 			AngleScale := (9496.0/5752.0 - 1.0)/VV1 * abs(abs((dint_to_real(MasterAngle2)/100.0-180.0))-VV1); **)
+(** 		elsif dint_to_real(MasterAngle2)/100.0>=(270.0-VV1) and dint_to_real(MasterAngle2)/100.0<=(270.0+VV1) then **)
+(** 			AngleScale := (9496.0/5752.0 - 1.0)/VV1 * abs(abs((dint_to_real(MasterAngle2)/100.0-270.0))-VV1); **)
+(** 		else **)
+(** 			AngleScale := 0.0; **)
+(** 		end_if;*} **)
+(** 		 **)
+(** 							 **)
+(** 		CalculateSpeed := real_to_dint(dint_to_real(MasterSetSpeed)*9496.0/5752.0/(1.0+AngleScale));			 **)
+			(* assign - Stmt *)
+			LD MasterSetSpeed
+			dint_to_real 
+			MUL 9496.0
+			DIV 5752.0
+			DIV ( 1.0
+				ADD AngleScale
+			)
+			real_to_dint 
+			ST CalculateSpeed
+
+(** 								 **)
+(** 		ClientX := real_to_dint(sin(dint_to_real(MasterAngle2)/100.0*3.14159/180.0)*2367.0) + MasterPositionX; **)
+			(* assign - Stmt *)
+			LD MasterAngle2
+			dint_to_real 
+			DIV 100.0
+			MUL 3.14159
+			DIV 180.0
+			sin 
+			MUL 2367.0
+			real_to_dint 
+			ADD MasterPositionX
+			ST ClientX
+
+(** 		 **)
+(** 		if MasterAngle2>=9000 and MasterAngle2<=27000 and NDC8.VehicleControl.TravelDir=1 then			 **)
+			(* if - Cond *)
+			LD MasterAngle2
+			GE 9000
+			AND ( MasterAngle2
+				LE 27000
+			)
+			AND ( NDC8.VehicleControl.TravelDir
+				EQ 1
+			)
+			JMPCN ODK_SKIP_000000000000003_000000000000001
+
+				(* then - Stmts *)
+
+(** 			DevX := NDC8.Position.X - ClientX; **)
+				(* assign - Stmt *)
+				LD NDC8.Position.X
+				SUB ClientX
+				ST DevX
+
+				JMP ODK_END_IF_000000000000003
+
+(** 		elsif MasterAngle2>=9000 and MasterAngle2<=27000 and NDC8.VehicleControl.TravelDir=0 then **)
+			(* elseif - Cond *) 
+			ODK_SKIP_000000000000003_000000000000001:
+			LD MasterAngle2
+			GE 9000
+			AND ( MasterAngle2
+				LE 27000
+			)
+			AND ( NDC8.VehicleControl.TravelDir
+				EQ 0
+			)
+			JMPCN ODK_SKIP_000000000000003_000000000000002
+
+				(* elsif - Stmts *)
+
+(** 			DevX := ClientX - NDC8.Position.X; **)
+				(* assign - Stmt *)
+				LD ClientX
+				SUB NDC8.Position.X
+				ST DevX
+
+				JMP ODK_END_IF_000000000000003
+
+(** 		elsif (MasterAngle2<9000 or MasterAngle2>27000) and NDC8.VehicleControl.TravelDir=1 then **)
+			(* elseif - Cond *) 
+			ODK_SKIP_000000000000003_000000000000002:
+			LD MasterAngle2
+			LT 9000
+			OR ( MasterAngle2
+				GT 27000
+			)
+			AND ( NDC8.VehicleControl.TravelDir
+				EQ 1
+			)
+			JMPCN ODK_SKIP_000000000000003_000000000000003
+
+				(* elsif - Stmts *)
+
+(** 			DevX := ClientX - NDC8.Position.X; **)
+				(* assign - Stmt *)
+				LD ClientX
+				SUB NDC8.Position.X
+				ST DevX
+
+				JMP ODK_END_IF_000000000000003
+
+(** 		elsif (MasterAngle2<9000 or MasterAngle2>27000) and NDC8.VehicleControl.TravelDir=0 then **)
+			(* elseif - Cond *) 
+			ODK_SKIP_000000000000003_000000000000003:
+			LD MasterAngle2
+			LT 9000
+			OR ( MasterAngle2
+				GT 27000
+			)
+			AND ( NDC8.VehicleControl.TravelDir
+				EQ 0
+			)
+			JMPCN ODK_SKIP_000000000000003_000000000000004
+
+				(* elsif - Stmts *)
+
+(** 			DevX := NDC8.Position.X - ClientX; **)
+				(* assign - Stmt *)
+				LD NDC8.Position.X
+				SUB ClientX
+				ST DevX
+
+				JMP ODK_END_IF_000000000000003
+
+(** 		end_if; **)
+			(* if - End *) 
+			ODK_SKIP_000000000000003_000000000000004:
+			ODK_END_IF_000000000000003:
+
+(** 		 **)
+(** {* --------------------------------PID Adjustment------------------------------------------------- *} **)
+(** 		{* P Adjust *} **)
+(** 		P_Curve_Scale := 0.65; **)
+			(* assign - Stmt *)
+			LD 0.65
+			ST P_Curve_Scale
+
+(** 		PP_Curve := P_Curve_Scale * dint_to_real(DevX); **)
+			(* assign - Stmt *)
+			LD P_Curve_Scale
+			MUL ( DevX
+				dint_to_real 
+			)
+			ST PP_Curve
+
+(** 		if PP_Curve<-150.0 then **)
+			(* if - Cond *)
+			LD PP_Curve
+			LT -150.0
+			JMPCN ODK_SKIP_000000000000004_000000000000001
+
+				(* then - Stmts *)
+
+(** 			PP_Curve := -150.0; **)
+				(* assign - Stmt *)
+				LD -150.0
+				ST PP_Curve
+
+				JMP ODK_END_IF_000000000000004
+
+(** 		elsif PP_Curve>150.0 then **)
+			(* elseif - Cond *) 
+			ODK_SKIP_000000000000004_000000000000001:
+			LD PP_Curve
+			GT 150.0
+			JMPCN ODK_SKIP_000000000000004_000000000000002
+
+				(* elsif - Stmts *)
+
+(** 			PP_Curve := 150.0; **)
+				(* assign - Stmt *)
+				LD 150.0
+				ST PP_Curve
+
+				JMP ODK_END_IF_000000000000004
+
+(** 		end_if; **)
+			(* if - End *) 
+			ODK_SKIP_000000000000004_000000000000002:
+			ODK_END_IF_000000000000004:
+
+(** 		{* I Adjust *}								 **)
+(** 		if (abs(DevX) > 30)  or Icount > 10 then			 **)
+			(* if - Cond *)
+			LD DevX
+			abs 
+			GT 30
+			OR ( Icount
+				GT 10
+			)
+			JMPCN ODK_SKIP_000000000000005_000000000000001
+
+				(* then - Stmts *)
+
+(** 			IdevDist := 0;		 **)
+				(* assign - Stmt *)
+				LD 0
+				ST IdevDist
+
+(** 			Icount := 0; **)
+				(* assign - Stmt *)
+				LD 0
+				ST Icount
+
+				JMP ODK_END_IF_000000000000005
+
+(** 		else **)
+			(* else *) 
+			ODK_SKIP_000000000000005_000000000000001:
+
+				(* else - Stmts *)
+
+(** 			IdevDist := DevX + IdevDist;	 **)
+				(* assign - Stmt *)
+				LD DevX
+				ADD IdevDist
+				ST IdevDist
+
+(** 			Icount := Icount + 1; **)
+				(* assign - Stmt *)
+				LD Icount
+				ADD 1
+				ST Icount
+
+(** 		end_if; **)
+			(* if - End *) 
+			ODK_END_IF_000000000000005:
+
+(** 		I_Curve_Scale := 0.1;				 **)
+			(* assign - Stmt *)
+			LD 0.1
+			ST I_Curve_Scale
+
+(**   		PI_Curve := I_Curve_Scale*dint_to_real(IdevDist); **)
+			(* assign - Stmt *)
+			LD I_Curve_Scale
+			MUL ( IdevDist
+				dint_to_real 
+			)
+			ST PI_Curve
+
+(** 		if PI_Curve<-20.0 then **)
+			(* if - Cond *)
+			LD PI_Curve
+			LT -20.0
+			JMPCN ODK_SKIP_000000000000006_000000000000001
+
+				(* then - Stmts *)
+
+(** 			PI_Curve := -20.0; **)
+				(* assign - Stmt *)
+				LD -20.0
+				ST PI_Curve
+
+				JMP ODK_END_IF_000000000000006
+
+(** 		elsif PI_Curve>20.0 then **)
+			(* elseif - Cond *) 
+			ODK_SKIP_000000000000006_000000000000001:
+			LD PI_Curve
+			GT 20.0
+			JMPCN ODK_SKIP_000000000000006_000000000000002
+
+				(* elsif - Stmts *)
+
+(** 			PI_Curve := 20.0; **)
+				(* assign - Stmt *)
+				LD 20.0
+				ST PI_Curve
+
+				JMP ODK_END_IF_000000000000006
+
+(** 		end_if; **)
+			(* if - End *) 
+			ODK_SKIP_000000000000006_000000000000002:
+			ODK_END_IF_000000000000006:
+
+(** 			 **)
+(** 		{* D Adjust *}			 **)
+(** 		if abs(DevX) < 20 then **)
+			(* if - Cond *)
+			LD DevX
+			abs 
+			LT 20
+			JMPCN ODK_SKIP_000000000000007_000000000000001
+
+				(* then - Stmts *)
+
+(** 			DdevDist := DdevDist + DevX - PreDevX ; **)
+				(* assign - Stmt *)
+				LD DdevDist
+				ADD DevX
+				SUB PreDevX
+				ST DdevDist
+
+				JMP ODK_END_IF_000000000000007
+
+(** 		else **)
+			(* else *) 
+			ODK_SKIP_000000000000007_000000000000001:
+
+				(* else - Stmts *)
+
+(** 			DdevDist := 0; **)
+				(* assign - Stmt *)
+				LD 0
+				ST DdevDist
+
+(** 		end_if; **)
+			(* if - End *) 
+			ODK_END_IF_000000000000007:
+
+(** 		PreDevX := DevX;		 **)
+			(* assign - Stmt *)
+			LD DevX
+			ST PreDevX
+
+(** 		PD_Curve := D_Curve_Scale*dint_to_real(DdevDist); **)
+			(* assign - Stmt *)
+			LD D_Curve_Scale
+			MUL ( DdevDist
+				dint_to_real 
+			)
+			ST PD_Curve
+
+(** {* --------------------------------PID Adjustment------------------------------------------------- *}	 **)
+(** 		 **)
+(** 		CalculateSpeed := CalculateSpeed + real_to_dint(PP_Curve+PI_Curve+PD_Curve) ; **)
+			(* assign - Stmt *)
+			LD CalculateSpeed
+			ADD ( PP_Curve
+				ADD PI_Curve
+				ADD PD_Curve
+				real_to_dint 
+			)
+			ST CalculateSpeed
+
+(** 		CalculateSpeed := MIN(NDC8.Vehicle.MaxSpeed,CalculateSpeed); **)
+			(* assign - Stmt *)
+			LD NDC8.Vehicle.MaxSpeed
+			MIN CalculateSpeed
+			ST CalculateSpeed
+
+			JMP ODK_END_IF_000000000000002
+
+(** 									 **)
+(** 	else **)
+		(* else *) 
+		ODK_SKIP_000000000000002_000000000000001:
+
+			(* else - Stmts *)
+
+(** 	 **)
+(** {*	if NDC8.SegmentTrigger.GateOpen then **)
+(** 		if MasterPositionY=PreMasterPositionY then **)
+(** 			; **)
+(** 		else	 **)
+(** 	 		DevDist := NDC8.Position.Y - MasterPositionY + 4367; **)
+(** 			PreMasterPositionY := MasterPositionY; **)
+(** 		end_if; **)
+(** 	else **)
+(** 		if MasterPositionX=PreMasterPositionX then **)
+(** 			; **)
+(** 		else	 **)
+(** 	 		DevDist := NDC8.Position.X - MasterPositionX; **)
+(** 			PreMasterPositionX := MasterPositionX; **)
+(** 		end_if; **)
+(** 	end_if;*} **)
+(** 		 **)
+(** 		if NDC8.SegmentTrigger.DirectionY then	{* 两车Y轴方向行驶 *} **)
+			(* if - Cond *)
+			LD NDC8.SegmentTrigger.DirectionY
+			JMPCN ODK_SKIP_000000000000008_000000000000001
+
+				(* then - Stmts *)
+
+(** 			FlagCount := 2; **)
+				(* assign - Stmt *)
+				LD 2
+				ST FlagCount
+
+(** 			if MasterPositionY=PreMasterPositionY then **)
+				(* if - Cond *)
+				LD MasterPositionY
+				EQ PreMasterPositionY
+				JMPCN ODK_SKIP_000000000000009_000000000000001
+
+					(* then - Stmts *)
+
+					JMP ODK_END_IF_000000000000009
+
+(** 				; **)
+(** 			else	 **)
+				(* else *) 
+				ODK_SKIP_000000000000009_000000000000001:
+
+					(* else - Stmts *)
+
+(** 				if (NDC8.Position.Y-PreClientPositionY)<=0 and (MasterPositionY-PreMasterPositionY)<0 then					 **)
+					(* if - Cond *)
+					LD NDC8.Position.Y
+					SUB PreClientPositionY
+					LE 0
+					AND ( MasterPositionY
+						SUB PreMasterPositionY
+						LT 0
+					)
+					JMPCN ODK_SKIP_00000000000000A_000000000000001
+
+						(* then - Stmts *)
+
+(** 			 		DevDist := NDC8.Position.Y - MasterPositionY; **)
+						(* assign - Stmt *)
+						LD NDC8.Position.Y
+						SUB MasterPositionY
+						ST DevDist
+
+						JMP ODK_END_IF_00000000000000A
+
+(** 				elsif (NDC8.Position.Y-PreClientPositionY)>=0 and (MasterPositionY-PreMasterPositionY)>0 then **)
+					(* elseif - Cond *) 
+					ODK_SKIP_00000000000000A_000000000000001:
+					LD NDC8.Position.Y
+					SUB PreClientPositionY
+					GE 0
+					AND ( MasterPositionY
+						SUB PreMasterPositionY
+						GT 0
+					)
+					JMPCN ODK_SKIP_00000000000000A_000000000000002
+
+						(* elsif - Stmts *)
+
+(** 					DevDist := MasterPositionY - NDC8.Position.Y; **)
+						(* assign - Stmt *)
+						LD MasterPositionY
+						SUB NDC8.Position.Y
+						ST DevDist
+
+						JMP ODK_END_IF_00000000000000A
+
+(** 				end_if; **)
+					(* if - End *) 
+					ODK_SKIP_00000000000000A_000000000000002:
+					ODK_END_IF_00000000000000A:
+
+(**  **)
+(** 				if not Flag then **)
+					(* if - Cond *)
+					LD Flag
+					NOT
+					JMPCN ODK_SKIP_00000000000000B_000000000000001
+
+						(* then - Stmts *)
+
+(** 					Flag := true; **)
+						(* assign - Stmt *)
+						LD true
+						ST Flag
+
+						JMP ODK_END_IF_00000000000000B
+
+(** 				else **)
+					(* else *) 
+					ODK_SKIP_00000000000000B_000000000000001:
+
+						(* else - Stmts *)
+
+(** 					if abs(DevDist-PreDevDist) > 10 then **)
+						(* if - Cond *)
+						LD DevDist
+						SUB PreDevDist
+						abs 
+						GT 10
+						JMPCN ODK_SKIP_00000000000000C_000000000000001
+
+							(* then - Stmts *)
+
+(** 						if OverCount > 0 then **)
+							(* if - Cond *)
+							LD OverCount
+							GT 0
+							JMPCN ODK_SKIP_00000000000000D_000000000000001
+
+								(* then - Stmts *)
+
+								JMP ODK_END_IF_00000000000000D
+
+(** 							; **)
+(** 						else **)
+							(* else *) 
+							ODK_SKIP_00000000000000D_000000000000001:
+
+								(* else - Stmts *)
+
+(** 					  		DevDist := PreDevDist; **)
+								(* assign - Stmt *)
+								LD PreDevDist
+								ST DevDist
+
+(** 					   	    OverCount := OverCount + 1; **)
+								(* assign - Stmt *)
+								LD OverCount
+								ADD 1
+								ST OverCount
+
+(** 						end_if; **)
+							(* if - End *) 
+							ODK_END_IF_00000000000000D:
+
+							JMP ODK_END_IF_00000000000000C
+
+(** 					else **)
+						(* else *) 
+						ODK_SKIP_00000000000000C_000000000000001:
+
+							(* else - Stmts *)
+
+(** 						OverCount := 0; **)
+							(* assign - Stmt *)
+							LD 0
+							ST OverCount
+
+(** 					end_if; **)
+						(* if - End *) 
+						ODK_END_IF_00000000000000C:
+
+(** 				end_if; **)
+					(* if - End *) 
+					ODK_END_IF_00000000000000B:
+
+(** 				PreMasterPositionY := MasterPositionY; **)
+					(* assign - Stmt *)
+					LD MasterPositionY
+					ST PreMasterPositionY
+
+(** 				PreClientPositionY := NDC8.Position.Y; **)
+					(* assign - Stmt *)
+					LD NDC8.Position.Y
+					ST PreClientPositionY
+
+(** 			end_if;			 **)
+				(* if - End *) 
+				ODK_END_IF_000000000000009:
+
+				JMP ODK_END_IF_000000000000008
+
+(** 		else {* 两车X轴方向行驶 *}	 **)
+			(* else *) 
+			ODK_SKIP_000000000000008_000000000000001:
+
+				(* else - Stmts *)
+
+(** 			FlagCount := 3; **)
+				(* assign - Stmt *)
+				LD 3
+				ST FlagCount
+
+(** 			if MasterPositionX=PreMasterPositionX then **)
+				(* if - Cond *)
+				LD MasterPositionX
+				EQ PreMasterPositionX
+				JMPCN ODK_SKIP_00000000000000E_000000000000001
+
+					(* then - Stmts *)
+
+					JMP ODK_END_IF_00000000000000E
+
+(** 				; **)
+(** 			else	 **)
+				(* else *) 
+				ODK_SKIP_00000000000000E_000000000000001:
+
+					(* else - Stmts *)
+
+(** 				if (NDC8.Position.X-PreClientPositionX)<=0 and (MasterPositionX-PreMasterPositionX)<0 then					 **)
+					(* if - Cond *)
+					LD NDC8.Position.X
+					SUB PreClientPositionX
+					LE 0
+					AND ( MasterPositionX
+						SUB PreMasterPositionX
+						LT 0
+					)
+					JMPCN ODK_SKIP_00000000000000F_000000000000001
+
+						(* then - Stmts *)
+
+(** 			 		DevDist := NDC8.Position.X - MasterPositionX; **)
+						(* assign - Stmt *)
+						LD NDC8.Position.X
+						SUB MasterPositionX
+						ST DevDist
+
+						JMP ODK_END_IF_00000000000000F
+
+(** 				elsif (NDC8.Position.X-PreClientPositionX)>=0 and (MasterPositionX-PreMasterPositionX)>0 then **)
+					(* elseif - Cond *) 
+					ODK_SKIP_00000000000000F_000000000000001:
+					LD NDC8.Position.X
+					SUB PreClientPositionX
+					GE 0
+					AND ( MasterPositionX
+						SUB PreMasterPositionX
+						GT 0
+					)
+					JMPCN ODK_SKIP_00000000000000F_000000000000002
+
+						(* elsif - Stmts *)
+
+(** 					DevDist := MasterPositionX - NDC8.Position.X; **)
+						(* assign - Stmt *)
+						LD MasterPositionX
+						SUB NDC8.Position.X
+						ST DevDist
+
+						JMP ODK_END_IF_00000000000000F
+
+(** 				end_if; **)
+					(* if - End *) 
+					ODK_SKIP_00000000000000F_000000000000002:
+					ODK_END_IF_00000000000000F:
+
+(** 		 **)
+(** 				if not Flag then **)
+					(* if - Cond *)
+					LD Flag
+					NOT
+					JMPCN ODK_SKIP_00000000000000G_000000000000001
+
+						(* then - Stmts *)
+
+(** 					Flag := true; **)
+						(* assign - Stmt *)
+						LD true
+						ST Flag
+
+						JMP ODK_END_IF_00000000000000G
+
+(** 				else **)
+					(* else *) 
+					ODK_SKIP_00000000000000G_000000000000001:
+
+						(* else - Stmts *)
+
+(** 					if abs(DevDist-PreDevDist) > 10 then **)
+						(* if - Cond *)
+						LD DevDist
+						SUB PreDevDist
+						abs 
+						GT 10
+						JMPCN ODK_SKIP_00000000000000H_000000000000001
+
+							(* then - Stmts *)
+
+(** 						if OverCount > 0 then **)
+							(* if - Cond *)
+							LD OverCount
+							GT 0
+							JMPCN ODK_SKIP_00000000000000I_000000000000001
+
+								(* then - Stmts *)
+
+								JMP ODK_END_IF_00000000000000I
+
+(** 							; **)
+(** 						else **)
+							(* else *) 
+							ODK_SKIP_00000000000000I_000000000000001:
+
+								(* else - Stmts *)
+
+(** 						   DevDist := PreDevDist; **)
+								(* assign - Stmt *)
+								LD PreDevDist
+								ST DevDist
+
+(** 						   OverCount := OverCount + 1; **)
+								(* assign - Stmt *)
+								LD OverCount
+								ADD 1
+								ST OverCount
+
+(** 						end_if; **)
+							(* if - End *) 
+							ODK_END_IF_00000000000000I:
+
+							JMP ODK_END_IF_00000000000000H
+
+(** 					else **)
+						(* else *) 
+						ODK_SKIP_00000000000000H_000000000000001:
+
+							(* else - Stmts *)
+
+(** 						OverCount := 0; **)
+							(* assign - Stmt *)
+							LD 0
+							ST OverCount
+
+(** 					end_if; **)
+						(* if - End *) 
+						ODK_END_IF_00000000000000H:
+
+(** 				end_if; **)
+					(* if - End *) 
+					ODK_END_IF_00000000000000G:
+
+(** 		 **)
+(** 				PreMasterPositionX := MasterPositionX; **)
+					(* assign - Stmt *)
+					LD MasterPositionX
+					ST PreMasterPositionX
+
+(** 				PreClientPositionX := NDC8.Position.X; **)
+					(* assign - Stmt *)
+					LD NDC8.Position.X
+					ST PreClientPositionX
+
+(** 			end_if;	 **)
+				(* if - End *) 
+				ODK_END_IF_00000000000000E:
+
+(** 	end_if; **)
+			(* if - End *) 
+			ODK_END_IF_000000000000008:
+
+(** 	PreDevDist := DevDist; **)
+			(* assign - Stmt *)
+			LD DevDist
+			ST PreDevDist
+
+(** 	 **)
+(** {* --------------------------------PID Adjustment------------------------------------------------- *}	 **)
+(** 	{* P Adjust *} **)
+(** 	P_Scale := 0.55; **)
+			(* assign - Stmt *)
+			LD 0.55
+			ST P_Scale
+
+(** 	PP := P_Scale*dint_to_real(DevDist); **)
+			(* assign - Stmt *)
+			LD P_Scale
+			MUL ( DevDist
+				dint_to_real 
+			)
+			ST PP
+
+(** 	if PP<-150.0 then **)
+			(* if - Cond *)
+			LD PP
+			LT -150.0
+			JMPCN ODK_SKIP_00000000000000J_000000000000001
+
+				(* then - Stmts *)
+
+(** 		PP := -150.0; **)
+				(* assign - Stmt *)
+				LD -150.0
+				ST PP
+
+				JMP ODK_END_IF_00000000000000J
+
+(** 	elsif PP>150.0 then **)
+			(* elseif - Cond *) 
+			ODK_SKIP_00000000000000J_000000000000001:
+			LD PP
+			GT 150.0
+			JMPCN ODK_SKIP_00000000000000J_000000000000002
+
+				(* elsif - Stmts *)
+
+(** 		PP := 150.0; **)
+				(* assign - Stmt *)
+				LD 150.0
+				ST PP
+
+				JMP ODK_END_IF_00000000000000J
+
+(** 	end_if; **)
+			(* if - End *) 
+			ODK_SKIP_00000000000000J_000000000000002:
+			ODK_END_IF_00000000000000J:
+
+(** 	{* I Adjust *} **)
+(** 	if abs(DevDist) > 10 or Icount > 10 then			 **)
+			(* if - Cond *)
+			LD DevDist
+			abs 
+			GT 10
+			OR ( Icount
+				GT 10
+			)
+			JMPCN ODK_SKIP_00000000000000K_000000000000001
+
+				(* then - Stmts *)
+
+(** 		IdevDist := 0;		 **)
+				(* assign - Stmt *)
+				LD 0
+				ST IdevDist
+
+(** 		Icount := 0; **)
+				(* assign - Stmt *)
+				LD 0
+				ST Icount
+
+				JMP ODK_END_IF_00000000000000K
+
+(** 	else **)
+			(* else *) 
+			ODK_SKIP_00000000000000K_000000000000001:
+
+				(* else - Stmts *)
+
+(** 		IdevDist := DevDist + IdevDist;	 **)
+				(* assign - Stmt *)
+				LD DevDist
+				ADD IdevDist
+				ST IdevDist
+
+(** 		Icount := Icount + 1; **)
+				(* assign - Stmt *)
+				LD Icount
+				ADD 1
+				ST Icount
+
+(** 	end_if; **)
+			(* if - End *) 
+			ODK_END_IF_00000000000000K:
+
+(** 	I_Scale := 0.1; **)
+			(* assign - Stmt *)
+			LD 0.1
+			ST I_Scale
+
+(** 	PI := I_Scale*dint_to_real(IdevDist); **)
+			(* assign - Stmt *)
+			LD I_Scale
+			MUL ( IdevDist
+				dint_to_real 
+			)
+			ST PI
+
+(** 	if PI<-10.0 then **)
+			(* if - Cond *)
+			LD PI
+			LT -10.0
+			JMPCN ODK_SKIP_00000000000000L_000000000000001
+
+				(* then - Stmts *)
+
+(** 		PI := -10.0; **)
+				(* assign - Stmt *)
+				LD -10.0
+				ST PI
+
+				JMP ODK_END_IF_00000000000000L
+
+(** 	elsif PI>10.0 then **)
+			(* elseif - Cond *) 
+			ODK_SKIP_00000000000000L_000000000000001:
+			LD PI
+			GT 10.0
+			JMPCN ODK_SKIP_00000000000000L_000000000000002
+
+				(* elsif - Stmts *)
+
+(** 		PI := 10.0; **)
+				(* assign - Stmt *)
+				LD 10.0
+				ST PI
+
+				JMP ODK_END_IF_00000000000000L
+
+(** 	end_if; **)
+			(* if - End *) 
+			ODK_SKIP_00000000000000L_000000000000002:
+			ODK_END_IF_00000000000000L:
+
+(** {* --------------------------------PID Adjustment------------------------------------------------- *} **)
+(**  **)
+(** 	CompenstateSpeed := real_to_dint(PP + PI) ; **)
+			(* assign - Stmt *)
+			LD PP
+			ADD PI
+			real_to_dint 
+			ST CompenstateSpeed
+
+(** 	end_if; **)
+		(* if - End *) 
+		ODK_END_IF_000000000000002:
+
+		JMP ODK_END_IF_000000000000001
+
+(** else **)
+	(* else *) 
+	ODK_SKIP_000000000000001_000000000000001:
+
+		(* else - Stmts *)
+
+(** 	Flag := false; **)
+		(* assign - Stmt *)
+		LD false
+		ST Flag
+
+(** 	Icount := 0; **)
+		(* assign - Stmt *)
+		LD 0
+		ST Icount
+
+(** 	OverCount := 0; **)
+		(* assign - Stmt *)
+		LD 0
+		ST OverCount
+
+(** 	PreDevDist := 0; **)
+		(* assign - Stmt *)
+		LD 0
+		ST PreDevDist
+
+(** 	DevDist := 0; **)
+		(* assign - Stmt *)
+		LD 0
+		ST DevDist
+
+(** 	DevX := 0; **)
+		(* assign - Stmt *)
+		LD 0
+		ST DevX
+
+(** 	CompenstateSpeed := 0; **)
+		(* assign - Stmt *)
+		LD 0
+		ST CompenstateSpeed
+
+(** 	CalculateSpeed := 0; **)
+		(* assign - Stmt *)
+		LD 0
+		ST CalculateSpeed
+
+(** end_if; **)
+	(* if - End *) 
+	ODK_END_IF_000000000000001:
+
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+
+END_FUNCTION_BLOCK

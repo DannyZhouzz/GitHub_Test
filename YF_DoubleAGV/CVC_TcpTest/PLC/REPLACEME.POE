@@ -1,0 +1,46 @@
+PROGRAM ReplaceMe
+VAR_EXTERNAL
+NDC8 : NDC8_T;
+END_VAR
+
+VAR_GLOBAL
+END_VAR
+
+VAR
+TcpPortSend : TcpPortSend_FB;
+TcpPortReceive : TcpPortReceive_FB;
+END_VAR
+
+(*Automatically declared*)
+VAR_EXTERNAL
+END_VAR
+(**  **)
+(**  **)
+(** if NDC8.CanOpenMaster.NMTState=5 and NDC8.CanOpenMaster.State=0 then **)
+	(* if - Cond *)
+	LD NDC8.CanOpenMaster.NMTState
+	EQ 5
+	AND ( NDC8.CanOpenMaster.State
+		EQ 0
+	)
+	JMPCN ODK_SKIP_000000000000001_000000000000001
+
+		(* then - Stmts *)
+
+(** 	TcpPortReceive(); **)
+		(* call - Stmt *)
+		CAL TcpPortReceive
+
+(** 	TcpPortSend(); **)
+		(* call - Stmt *)
+		CAL TcpPortSend
+
+		JMP ODK_END_IF_000000000000001
+
+(** end_if; **)
+	(* if - End *) 
+	ODK_SKIP_000000000000001_000000000000001:
+	ODK_END_IF_000000000000001:
+
+
+END_PROGRAM

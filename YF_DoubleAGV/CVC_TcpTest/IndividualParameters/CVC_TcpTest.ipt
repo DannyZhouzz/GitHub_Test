@@ -1,0 +1,5 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<File xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:NDC8SelectedParameterFile">
+  <FileInfo FileType="ipt" FileRevision="1" FileFormat="1" Description="NDC8 Carrier Parameter File" CreationDate="2019-04-23" CreationTime="11:17:10.4856776+08:00" CreatedBy="ThinkPad" ModificationDate="2019-04-23" ModificationTime="11:17:10.4856776+08:00" ModifiedBy="ThinkPad" ModifiedWith="P41716V3.2.0.14233" ModifiedWithSerial="35950" />
+  <Parameters />
+</File>

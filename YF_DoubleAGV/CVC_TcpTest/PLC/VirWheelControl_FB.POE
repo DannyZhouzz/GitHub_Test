@@ -1,0 +1,214 @@
+FUNCTION_BLOCK VirWheelControl_FB
+VAR_EXTERNAL
+NDC8 : NDC8_T;
+END_VAR
+
+VAR_INPUT
+
+END_VAR
+
+VAR_OUTPUT
+
+END_VAR
+
+VAR
+TCP_DriverTrasfer : TCP_DriverTrasfer_FB;
+END_VAR
+
+(*Automatically declared*)
+VAR_EXTERNAL
+	TCP_OK : bool;
+END_VAR
+(**  **)
+(** if NDC8.UserDefined.Boolean_25 then **)
+	(* if - Cond *)
+	LD NDC8.UserDefined.Boolean_25
+	JMPCN ODK_SKIP_000000000000001_000000000000001
+
+		(* then - Stmts *)
+
+(** 	TCP_DriverTrasfer(); **)
+		(* call - Stmt *)
+		CAL TCP_DriverTrasfer
+
+(** 	if NDC8.Vehicle.VehicleID=3 then **)
+		(* if - Cond *)
+		LD NDC8.Vehicle.VehicleID
+		EQ 3
+		JMPCN ODK_SKIP_000000000000002_000000000000001
+
+			(* then - Stmts *)
+
+(** 		NDC8.VehicleControl.PlcSelect := 1; **)
+			(* assign - Stmt *)
+			LD 1
+			ST NDC8.VehicleControl.PlcSelect
+
+(** 		NDC8.VehicleControl.PlcSelectMask := 15; **)
+			(* assign - Stmt *)
+			LD 15
+			ST NDC8.VehicleControl.PlcSelectMask
+
+(** 		NDC8.VehicleControl.PlcSetSteerEnable := 1; **)
+			(* assign - Stmt *)
+			LD 1
+			ST NDC8.VehicleControl.PlcSetSteerEnable
+
+(** 		NDC8.VehicleControl.PlcSetDriveEnable := 1; **)
+			(* assign - Stmt *)
+			LD 1
+			ST NDC8.VehicleControl.PlcSetDriveEnable
+
+(** 		 **)
+(** 		NDC8.LS2000.NavActive := 0; **)
+			(* assign - Stmt *)
+			LD 0
+			ST NDC8.LS2000.NavActive
+
+(** 	{*	NDC8.Manual.PlcSelect := 1; **)
+(** 		NDC8.Manual.PlcSelectMask := 4; **)
+(** 		NDC8.Manual.PlcSetOperationMode := 1;*} **)
+(** 	{*	if NDC8.UserDefined.FrontSetAngle>11500 then **)
+(** 			NDC8.UserDefined.FrontSetAngle := NDC8.UserDefined.FrontSetAngle - 65792; **)
+(** 		end_if; **)
+(** 		if NDC8.UserDefined.RearSetAngle>11500 then **)
+(** 			NDC8.UserDefined.RearSetAngle := NDC8.UserDefined.RearSetAngle - 65792; **)
+(** 		end_if; **)
+(** 		if NDC8.UserDefined.FrontSetSpeed>1500 then **)
+(** 			NDC8.UserDefined.FrontSetSpeed := NDC8.UserDefined.FrontSetSpeed - 65792; **)
+(** 		end_if; **)
+(** 		if NDC8.UserDefined.RearSetSpeed>1500 then **)
+(** 			NDC8.UserDefined.RearSetSpeed := NDC8.UserDefined.RearSetSpeed - 65792; **)
+(** 		end_if;*} **)
+(** 		if TCP_OK then **)
+			(* if - Cond *)
+			LD TCP_OK
+			JMPCN ODK_SKIP_000000000000003_000000000000001
+
+				(* then - Stmts *)
+
+(** 			NDC8.FrontWheel.PlcSetSpeed := NDC8.UserDefined.FrontSetSpeed; **)
+				(* assign - Stmt *)
+				LD NDC8.UserDefined.FrontSetSpeed
+				ST NDC8.FrontWheel.PlcSetSpeed
+
+(** 			NDC8.FrontWheel.PlcSetAngle := NDC8.UserDefined.FrontSetAngle; **)
+				(* assign - Stmt *)
+				LD NDC8.UserDefined.FrontSetAngle
+				ST NDC8.FrontWheel.PlcSetAngle
+
+(** 			NDC8.RearWheel.PlcSetSpeed  := NDC8.UserDefined.RearSetSpeed; **)
+				(* assign - Stmt *)
+				LD NDC8.UserDefined.RearSetSpeed
+				ST NDC8.RearWheel.PlcSetSpeed
+
+(** 			NDC8.RearWheel.PlcSetAngle  := NDC8.UserDefined.RearSetAngle; **)
+				(* assign - Stmt *)
+				LD NDC8.UserDefined.RearSetAngle
+				ST NDC8.RearWheel.PlcSetAngle
+
+				JMP ODK_END_IF_000000000000003
+
+(** 		else **)
+			(* else *) 
+			ODK_SKIP_000000000000003_000000000000001:
+
+				(* else - Stmts *)
+
+(** 			NDC8.FrontWheel.PlcSetSpeed := 0; **)
+				(* assign - Stmt *)
+				LD 0
+				ST NDC8.FrontWheel.PlcSetSpeed
+
+(** 			NDC8.RearWheel.PlcSetSpeed  := 0; **)
+				(* assign - Stmt *)
+				LD 0
+				ST NDC8.RearWheel.PlcSetSpeed
+
+(** 		end_if; **)
+			(* if - End *) 
+			ODK_END_IF_000000000000003:
+
+			JMP ODK_END_IF_000000000000002
+
+(** 	end_if; **)
+		(* if - End *) 
+		ODK_SKIP_000000000000002_000000000000001:
+		ODK_END_IF_000000000000002:
+
+		JMP ODK_END_IF_000000000000001
+
+(** else **)
+	(* else *) 
+	ODK_SKIP_000000000000001_000000000000001:
+
+		(* else - Stmts *)
+
+(** 	NDC8.VehicleControl.PlcSelect := 0; **)
+		(* assign - Stmt *)
+		LD 0
+		ST NDC8.VehicleControl.PlcSelect
+
+(** 	NDC8.VehicleControl.PlcSelectMask := 0; **)
+		(* assign - Stmt *)
+		LD 0
+		ST NDC8.VehicleControl.PlcSelectMask
+
+(** 	NDC8.VehicleControl.PlcSetSteerEnable := 0; **)
+		(* assign - Stmt *)
+		LD 0
+		ST NDC8.VehicleControl.PlcSetSteerEnable
+
+(** 	NDC8.VehicleControl.PlcSetDriveEnable := 0; **)
+		(* assign - Stmt *)
+		LD 0
+		ST NDC8.VehicleControl.PlcSetDriveEnable
+
+(** 	 **)
+(** {*	NDC8.Manual.PlcSelect := 1; **)
+(** 	NDC8.Manual.PlcSelectMask := 4; **)
+(** 	NDC8.Manual.PlcSetOperationMode := 1;*} **)
+(** 	NDC8.LS2000.NavActive := 1; **)
+		(* assign - Stmt *)
+		LD 1
+		ST NDC8.LS2000.NavActive
+
+(**  **)
+(** 	NDC8.UserDefined.VirFrontEncSpeed := NDC8.UserDefined.VirFrontSetSpeed - NDC8.UserDefined.VirFFeedbackSpeed; **)
+		(* assign - Stmt *)
+		LD NDC8.UserDefined.VirFrontSetSpeed
+		SUB NDC8.UserDefined.VirFFeedbackSpeed
+		ST NDC8.UserDefined.VirFrontEncSpeed
+
+(** 	NDC8.UserDefined.VirFrontEncAngle := NDC8.UserDefined.VirFrontSetAngle - NDC8.UserDefined.VirFFeedbackAngle; **)
+		(* assign - Stmt *)
+		LD NDC8.UserDefined.VirFrontSetAngle
+		SUB NDC8.UserDefined.VirFFeedbackAngle
+		ST NDC8.UserDefined.VirFrontEncAngle
+
+(** 	NDC8.UserDefined.VirRearEncSpeed  := NDC8.UserDefined.VirRearSetSpeed - NDC8.UserDefined.VirRFeedbackSpeed; **)
+		(* assign - Stmt *)
+		LD NDC8.UserDefined.VirRearSetSpeed
+		SUB NDC8.UserDefined.VirRFeedbackSpeed
+		ST NDC8.UserDefined.VirRearEncSpeed
+
+(** 	NDC8.UserDefined.VirRearEncAngle  := NDC8.UserDefined.VirRearSetAngle - NDC8.UserDefined.VirRFeedbackAngle; **)
+		(* assign - Stmt *)
+		LD NDC8.UserDefined.VirRearSetAngle
+		SUB NDC8.UserDefined.VirRFeedbackAngle
+		ST NDC8.UserDefined.VirRearEncAngle
+
+(** end_if; **)
+	(* if - End *) 
+	ODK_END_IF_000000000000001:
+
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+
+END_FUNCTION_BLOCK

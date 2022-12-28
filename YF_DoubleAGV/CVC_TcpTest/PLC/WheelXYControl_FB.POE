@@ -1,0 +1,149 @@
+FUNCTION_BLOCK WheelXYControl_FB
+VAR_EXTERNAL
+NDC8 : NDC8_T;
+END_VAR
+
+VAR_INPUT
+
+END_VAR
+
+VAR_OUTPUT
+
+END_VAR
+
+VAR
+
+END_VAR
+
+(*Automatically declared*)
+VAR_EXTERNAL
+END_VAR
+(**  **)
+(** if NDC8.UserDefined.Boolean_25 then **)
+	(* if - Cond *)
+	LD NDC8.UserDefined.Boolean_25
+	JMPCN ODK_SKIP_000000000000001_000000000000001
+
+		(* then - Stmts *)
+
+(** 	if NDC8.Vehicle.VehicleID=2 then **)
+		(* if - Cond *)
+		LD NDC8.Vehicle.VehicleID
+		EQ 2
+		JMPCN ODK_SKIP_000000000000002_000000000000001
+
+			(* then - Stmts *)
+
+(** 		NDC8.FrontWheel.X := 1590; **)
+			(* assign - Stmt *)
+			LD 1590
+			ST NDC8.FrontWheel.X
+
+(** 		NDC8.FrontWheel.Y := 300; **)
+			(* assign - Stmt *)
+			LD 300
+			ST NDC8.FrontWheel.Y
+
+(** 		NDC8.RearWheel.X := 810; **)
+			(* assign - Stmt *)
+			LD 810
+			ST NDC8.RearWheel.X
+
+(** 		NDC8.RearWheel.Y := 300; **)
+			(* assign - Stmt *)
+			LD 300
+			ST NDC8.RearWheel.Y
+
+(** 		NDC8.VirFrontWheel.X := -1590; **)
+			(* assign - Stmt *)
+			LD -1590
+			ST NDC8.VirFrontWheel.X
+
+(** 		NDC8.VirFrontWheel.Y := -300; **)
+			(* assign - Stmt *)
+			LD -300
+			ST NDC8.VirFrontWheel.Y
+
+(** 		NDC8.VirRearWheel.X := -810; **)
+			(* assign - Stmt *)
+			LD -810
+			ST NDC8.VirRearWheel.X
+
+(** 		NDC8.VirRearWheel.Y := -300; **)
+			(* assign - Stmt *)
+			LD -300
+			ST NDC8.VirRearWheel.Y
+
+(** 		NDC8.LS2000.X := 1860; **)
+			(* assign - Stmt *)
+			LD 1860
+			ST NDC8.LS2000.X
+
+			JMP ODK_END_IF_000000000000002
+
+(** 	end_if; **)
+		(* if - End *) 
+		ODK_SKIP_000000000000002_000000000000001:
+		ODK_END_IF_000000000000002:
+
+		JMP ODK_END_IF_000000000000001
+
+(** else **)
+	(* else *) 
+	ODK_SKIP_000000000000001_000000000000001:
+
+		(* else - Stmts *)
+
+(** 	NDC8.FrontWheel.X := 390; **)
+		(* assign - Stmt *)
+		LD 390
+		ST NDC8.FrontWheel.X
+
+(** 	NDC8.FrontWheel.Y := 300; **)
+		(* assign - Stmt *)
+		LD 300
+		ST NDC8.FrontWheel.Y
+
+(** 	NDC8.RearWheel.X := -390; **)
+		(* assign - Stmt *)
+		LD -390
+		ST NDC8.RearWheel.X
+
+(** 	NDC8.RearWheel.Y := 300; **)
+		(* assign - Stmt *)
+		LD 300
+		ST NDC8.RearWheel.Y
+
+(** 	NDC8.VirFrontWheel.X := -1590; **)
+		(* assign - Stmt *)
+		LD -1590
+		ST NDC8.VirFrontWheel.X
+
+(** 	NDC8.VirFrontWheel.Y := -300; **)
+		(* assign - Stmt *)
+		LD -300
+		ST NDC8.VirFrontWheel.Y
+
+(** 	NDC8.VirRearWheel.X := -810; **)
+		(* assign - Stmt *)
+		LD -810
+		ST NDC8.VirRearWheel.X
+
+(** 	NDC8.VirRearWheel.Y := -300; **)
+		(* assign - Stmt *)
+		LD -300
+		ST NDC8.VirRearWheel.Y
+
+(** 	NDC8.LS2000.X := 660; **)
+		(* assign - Stmt *)
+		LD 660
+		ST NDC8.LS2000.X
+
+(** end_if; **)
+	(* if - End *) 
+	ODK_END_IF_000000000000001:
+
+(**  **)
+(**  **)
+
+END_FUNCTION_BLOCK

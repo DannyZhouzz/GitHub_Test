@@ -1,0 +1,194 @@
+FUNCTION_BLOCK TcpPort_CRC_FB
+VAR_EXTERNAL
+
+END_VAR
+
+VAR_INPUT
+cBuffer : ARRAY[1..100] of byte;
+CrcLength : uint;
+END_VAR
+
+VAR_OUTPUT
+CrcHigh: Byte;
+CrcLow: Byte;
+END_VAR
+
+VAR
+i,j : uint ;
+wCrc : word ;
+wPolynom : word ;
+END_VAR
+
+(*Automatically declared*)
+VAR_EXTERNAL
+END_VAR
+(** {**************************************************} **)
+(** wCrc := 16#ffff; **)
+	(* assign - Stmt *)
+	LD 16#ffff
+	ST wCrc
+
+(** wPolynom := 16#A001; **)
+	(* assign - Stmt *)
+	LD 16#A001
+	ST wPolynom
+
+(**  **)
+(** For I:=3 to CrcLength by 1 do **)
+	(* for - Init *)
+	LD 3
+	ST I
+	EQ CrcLength
+	JMPC ODK_FOR_STMTS_000000000000001
+
+	(* for - Cond *)
+	ODK_FOR_000000000000001:
+
+	LD 3
+	GT CrcLength
+	JMPC ODK_FOR_DOWN_000000000000001
+
+	LD 0
+	GT 1
+	JMPC ODK_END_FOR_000000000000001
+
+	LD CrcLength
+	LT I
+	JMPC ODK_END_FOR_000000000000001
+	JMP ODK_FOR_STMTS_000000000000001
+
+	ODK_FOR_DOWN_000000000000001:
+
+	LD CrcLength
+	GT I
+	JMPC ODK_END_FOR_000000000000001
+
+	LD 0
+	LT 1
+	JMPC ODK_END_FOR_000000000000001
+
+		(* for - Stmts *)
+		ODK_FOR_STMTS_000000000000001:
+
+(** 	wCrc := wCrc xor byte_to_word(cBuffer[I]); **)
+		(* assign - Stmt *)
+		LD wCrc
+		XOR ( cBuffer[I]
+			byte_to_word 
+		)
+		ST wCrc
+
+(** 	For J:=0 to 7 by 1 do **)
+		(* for - Init *)
+		LD 0
+		ST J
+		EQ 7
+		JMPC ODK_FOR_STMTS_000000000000002
+
+		(* for - Cond *)
+		ODK_FOR_000000000000002:
+
+		LD 0
+		GT 7
+		JMPC ODK_FOR_DOWN_000000000000002
+
+		LD 0
+		GT 1
+		JMPC ODK_END_FOR_000000000000002
+
+		LD 7
+		LT J
+		JMPC ODK_END_FOR_000000000000002
+		JMP ODK_FOR_STMTS_000000000000002
+
+		ODK_FOR_DOWN_000000000000002:
+
+		LD 7
+		GT J
+		JMPC ODK_END_FOR_000000000000002
+
+		LD 0
+		LT 1
+		JMPC ODK_END_FOR_000000000000002
+
+			(* for - Stmts *)
+			ODK_FOR_STMTS_000000000000002:
+
+(** 	 **)
+(** 		if word_to_bool(wCrc and 16#0001) then **)
+			(* if - Cond *)
+			LD wCrc
+			AND 16#0001
+			word_to_bool 
+			JMPCN ODK_SKIP_000000000000003_000000000000001
+
+				(* then - Stmts *)
+
+(** 		{*if ROL(wCrc ,15) then*} **)
+(** 			wCrc := SHR(wCrc,1) xor wPolynom; **)
+				(* assign - Stmt *)
+				LD wCrc
+				SHR 1
+				XOR wPolynom
+				ST wCrc
+
+				JMP ODK_END_IF_000000000000003
+
+(** 		else **)
+			(* else *) 
+			ODK_SKIP_000000000000003_000000000000001:
+
+				(* else - Stmts *)
+
+(** 			wCrc := SHR(wCrc,1); **)
+				(* assign - Stmt *)
+				LD wCrc
+				SHR 1
+				ST wCrc
+
+(** 		end_if; **)
+			(* if - End *) 
+			ODK_END_IF_000000000000003:
+
+		(* for - By *)
+		LD 1
+		ADD J
+		ST J
+(** 		 **)
+(** 	end_for; **)
+
+		JMP ODK_FOR_000000000000002
+
+		(* for - End *) 
+		ODK_END_FOR_000000000000002:
+
+	(* for - By *)
+	LD 1
+	ADD I
+	ST I
+(** end_for; **)
+
+	JMP ODK_FOR_000000000000001
+
+	(* for - End *) 
+	ODK_END_FOR_000000000000001:
+
+(** CrcLow := word_to_byte(wCrc); **)
+	(* assign - Stmt *)
+	LD wCrc
+	word_to_byte 
+	ST CrcLow
+
+(** CrcHigh := word_to_byte( SHR(wCrc,8)  ); **)
+	(* assign - Stmt *)
+	LD wCrc
+	SHR 8
+	word_to_byte 
+	ST CrcHigh
+
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+
+END_FUNCTION_BLOCK

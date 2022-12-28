@@ -1,0 +1,15 @@
+$BEGIN_IT_HEADER
+GLOBALDEFINITIONS = 1 
+$END_IT_HEADER
+PROGRAM GLOBAL
+
+VAR_GLOBAL
+
+
+
+(* The code below was auto-generated - do not change *)
+	NDC8: NDC8_T;
+(* The code above was auto-generated - do not change *)
+END_VAR
+
+END_PROGRAM

@@ -1,0 +1,147 @@
+FUNCTION_BLOCK ClientModeSelect_FB
+VAR_EXTERNAL
+NDC8 : NDC8_T;
+END_VAR
+
+VAR_INPUT
+
+END_VAR
+
+VAR_OUTPUT
+
+END_VAR
+
+VAR
+ClientVehicleControl : ClientVehicleControl_FB;
+ClientCalControl : ClientCalControl_FB;
+VirMode,CalMode : bool;
+END_VAR
+
+(*Automatically declared*)
+VAR_EXTERNAL
+	CALCULATESPEED : dint;
+	MASTERSETSPEED : dint;
+	MASTERFLAG : dint;
+	COMPENSTATESPEED : dint;
+END_VAR
+(**  **)
+(** {* 两车组合信号起效且车辆ID等于系统写入的副车ID时，该车变为副车，响应主车的控制 *} **)
+(** if NDC8.Vehicle.VehicleID=int_to_dint(NDC8.OMPLC.Data10) and MasterFlag=1 and NDC8.OMPLC.GroupFlag=1 then **)
+	(* if - Cond *)
+	LD NDC8.Vehicle.VehicleID
+	EQ ( NDC8.OMPLC.Data10
+		int_to_dint 
+	)
+	AND ( MasterFlag
+		EQ 1
+	)
+	AND ( NDC8.OMPLC.GroupFlag
+		EQ 1
+	)
+	JMPCN ODK_SKIP_000000000000001_000000000000001
+
+		(* then - Stmts *)
+
+(**  **)
+(** 	if VirMode then	{* 虚拟合体方式 *} **)
+		(* if - Cond *)
+		LD VirMode
+		JMPCN ODK_SKIP_000000000000002_000000000000001
+
+			(* then - Stmts *)
+
+(** 		ClientVehicleControl(); **)
+			(* call - Stmt *)
+			CAL ClientVehicleControl
+
+			JMP ODK_END_IF_000000000000002
+
+(** 	elsif CalMode then	{* 独立路线跟随方式 *} **)
+		(* elseif - Cond *) 
+		ODK_SKIP_000000000000002_000000000000001:
+		LD CalMode
+		JMPCN ODK_SKIP_000000000000002_000000000000002
+
+			(* elsif - Stmts *)
+
+(** 		ClientCalControl(); **)
+			(* call - Stmt *)
+			CAL ClientCalControl
+
+(** 		NDC8.VehicleControl.SlowDown := true; **)
+			(* assign - Stmt *)
+			LD true
+			ST NDC8.VehicleControl.SlowDown
+
+(** 		if NDC8.SegmentTrigger.LeftTurn or NDC8.SegmentTrigger.RightTurn then **)
+			(* if - Cond *)
+			LD NDC8.SegmentTrigger.LeftTurn
+			OR NDC8.SegmentTrigger.RightTurn
+			JMPCN ODK_SKIP_000000000000003_000000000000001
+
+				(* then - Stmts *)
+
+(** 			if CalculateSpeed<80 then **)
+				(* if - Cond *)
+				LD CalculateSpeed
+				LT 80
+				JMPCN ODK_SKIP_000000000000004_000000000000001
+
+					(* then - Stmts *)
+
+(** 				NDC8.VehicleControl.SlowDownSpeed:= 80; **)
+					(* assign - Stmt *)
+					LD 80
+					ST NDC8.VehicleControl.SlowDownSpeed
+
+					JMP ODK_END_IF_000000000000004
+
+(** 			else **)
+				(* else *) 
+				ODK_SKIP_000000000000004_000000000000001:
+
+					(* else - Stmts *)
+
+(** 				NDC8.VehicleControl.SlowDownSpeed:= CalculateSpeed; **)
+					(* assign - Stmt *)
+					LD CalculateSpeed
+					ST NDC8.VehicleControl.SlowDownSpeed
+
+(** 			end_if; **)
+				(* if - End *) 
+				ODK_END_IF_000000000000004:
+
+				JMP ODK_END_IF_000000000000003
+
+(** 		else **)
+			(* else *) 
+			ODK_SKIP_000000000000003_000000000000001:
+
+				(* else - Stmts *)
+
+(** 			NDC8.VehicleControl.SlowDownSpeed:= MasterSetSpeed + CompenstateSpeed; **)
+				(* assign - Stmt *)
+				LD MasterSetSpeed
+				ADD CompenstateSpeed
+				ST NDC8.VehicleControl.SlowDownSpeed
+
+(** 		end_if; **)
+			(* if - End *) 
+			ODK_END_IF_000000000000003:
+
+			JMP ODK_END_IF_000000000000002
+
+(** 	end_if; **)
+		(* if - End *) 
+		ODK_SKIP_000000000000002_000000000000002:
+		ODK_END_IF_000000000000002:
+
+		JMP ODK_END_IF_000000000000001
+
+(** end_if; **)
+	(* if - End *) 
+	ODK_SKIP_000000000000001_000000000000001:
+	ODK_END_IF_000000000000001:
+
+
+END_FUNCTION_BLOCK

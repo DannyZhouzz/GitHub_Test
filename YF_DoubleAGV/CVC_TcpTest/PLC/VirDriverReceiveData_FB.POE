@@ -1,0 +1,449 @@
+FUNCTION_BLOCK VirDriverReceiveData_FB
+VAR_EXTERNAL
+NDC8 : NDC8_T;
+DriverReceive_ValueByte:ARRAY[1..500] OF Byte;
+END_VAR
+
+VAR_INPUT
+
+END_VAR
+
+VAR_OUTPUT
+Finish : bool;
+END_VAR
+
+VAR
+HighDint : dint;
+LowDint : dint;
+END_VAR
+
+(*Automatically declared*)
+VAR_EXTERNAL
+END_VAR
+(** if NDC8.Vehicle.VehicleID=2 then {* Master Vehicle *} **)
+	(* if - Cond *)
+	LD NDC8.Vehicle.VehicleID
+	EQ 2
+	JMPCN ODK_SKIP_000000000000001_000000000000001
+
+		(* then - Stmts *)
+
+(** 	HighDint := byte_to_dint(DriverReceive_ValueByte[5]); **)
+		(* assign - Stmt *)
+		LD DriverReceive_ValueByte[5]
+		byte_to_dint 
+		ST HighDint
+
+(** 	LowDint  := byte_to_dint(DriverReceive_ValueByte[6]); **)
+		(* assign - Stmt *)
+		LD DriverReceive_ValueByte[6]
+		byte_to_dint 
+		ST LowDint
+
+(** 	if DriverReceive_ValueByte[13]=1 then **)
+		(* if - Cond *)
+		LD DriverReceive_ValueByte[13]
+		EQ 1
+		JMPCN ODK_SKIP_000000000000002_000000000000001
+
+			(* then - Stmts *)
+
+(** 		NDC8.UserDefined.VirFrontEncSpeed := (HighDint*256 + LowDint) - NDC8.UserDefined.VirFFeedbackSpeed; **)
+			(* assign - Stmt *)
+			LD HighDint
+			MUL 256
+			ADD LowDint
+			SUB NDC8.UserDefined.VirFFeedbackSpeed
+			ST NDC8.UserDefined.VirFrontEncSpeed
+
+			JMP ODK_END_IF_000000000000002
+
+(** 	else **)
+		(* else *) 
+		ODK_SKIP_000000000000002_000000000000001:
+
+			(* else - Stmts *)
+
+(** 		NDC8.UserDefined.VirFrontEncSpeed := -(HighDint*256 + LowDint) - NDC8.UserDefined.VirFFeedbackSpeed; **)
+			(* assign - Stmt *)
+			LD HighDint
+			MUL 256
+			ADD LowDint
+			NEG
+			SUB NDC8.UserDefined.VirFFeedbackSpeed
+			ST NDC8.UserDefined.VirFrontEncSpeed
+
+(** 	end_if; **)
+		(* if - End *) 
+		ODK_END_IF_000000000000002:
+
+(**  **)
+(** 	HighDint := byte_to_dint(DriverReceive_ValueByte[7]); **)
+		(* assign - Stmt *)
+		LD DriverReceive_ValueByte[7]
+		byte_to_dint 
+		ST HighDint
+
+(** 	LowDint  := byte_to_dint(DriverReceive_ValueByte[8]); **)
+		(* assign - Stmt *)
+		LD DriverReceive_ValueByte[8]
+		byte_to_dint 
+		ST LowDint
+
+(** 	if DriverReceive_ValueByte[14]=1 then **)
+		(* if - Cond *)
+		LD DriverReceive_ValueByte[14]
+		EQ 1
+		JMPCN ODK_SKIP_000000000000003_000000000000001
+
+			(* then - Stmts *)
+
+(** 		NDC8.UserDefined.VirFrontEncAngle := -(HighDint*256 + LowDint) - NDC8.UserDefined.VirFFeedbackAngle; **)
+			(* assign - Stmt *)
+			LD HighDint
+			MUL 256
+			ADD LowDint
+			NEG
+			SUB NDC8.UserDefined.VirFFeedbackAngle
+			ST NDC8.UserDefined.VirFrontEncAngle
+
+			JMP ODK_END_IF_000000000000003
+
+(** 	else **)
+		(* else *) 
+		ODK_SKIP_000000000000003_000000000000001:
+
+			(* else - Stmts *)
+
+(** 		NDC8.UserDefined.VirFrontEncAngle := HighDint*256 + LowDint - NDC8.UserDefined.VirFFeedbackAngle; **)
+			(* assign - Stmt *)
+			LD HighDint
+			MUL 256
+			ADD LowDint
+			SUB NDC8.UserDefined.VirFFeedbackAngle
+			ST NDC8.UserDefined.VirFrontEncAngle
+
+(** 	end_if; **)
+		(* if - End *) 
+		ODK_END_IF_000000000000003:
+
+(**  **)
+(** 	HighDint := byte_to_dint(DriverReceive_ValueByte[9]); **)
+		(* assign - Stmt *)
+		LD DriverReceive_ValueByte[9]
+		byte_to_dint 
+		ST HighDint
+
+(** 	LowDint  := byte_to_dint(DriverReceive_ValueByte[10]); **)
+		(* assign - Stmt *)
+		LD DriverReceive_ValueByte[10]
+		byte_to_dint 
+		ST LowDint
+
+(** 	if DriverReceive_ValueByte[15]=1 then **)
+		(* if - Cond *)
+		LD DriverReceive_ValueByte[15]
+		EQ 1
+		JMPCN ODK_SKIP_000000000000004_000000000000001
+
+			(* then - Stmts *)
+
+(** 		NDC8.UserDefined.VirRearEncSpeed := HighDint*256 + LowDint - NDC8.UserDefined.VirRFeedbackSpeed; **)
+			(* assign - Stmt *)
+			LD HighDint
+			MUL 256
+			ADD LowDint
+			SUB NDC8.UserDefined.VirRFeedbackSpeed
+			ST NDC8.UserDefined.VirRearEncSpeed
+
+			JMP ODK_END_IF_000000000000004
+
+(** 	else **)
+		(* else *) 
+		ODK_SKIP_000000000000004_000000000000001:
+
+			(* else - Stmts *)
+
+(** 		NDC8.UserDefined.VirRearEncSpeed := -(HighDint*256 + LowDint) - NDC8.UserDefined.VirRFeedbackSpeed; **)
+			(* assign - Stmt *)
+			LD HighDint
+			MUL 256
+			ADD LowDint
+			NEG
+			SUB NDC8.UserDefined.VirRFeedbackSpeed
+			ST NDC8.UserDefined.VirRearEncSpeed
+
+(** 	end_if; **)
+		(* if - End *) 
+		ODK_END_IF_000000000000004:
+
+(**  **)
+(** 	HighDint := byte_to_dint(DriverReceive_ValueByte[11]); **)
+		(* assign - Stmt *)
+		LD DriverReceive_ValueByte[11]
+		byte_to_dint 
+		ST HighDint
+
+(** 	LowDint  := byte_to_dint(DriverReceive_ValueByte[12]); **)
+		(* assign - Stmt *)
+		LD DriverReceive_ValueByte[12]
+		byte_to_dint 
+		ST LowDint
+
+(** 	if DriverReceive_ValueByte[16]=1 then **)
+		(* if - Cond *)
+		LD DriverReceive_ValueByte[16]
+		EQ 1
+		JMPCN ODK_SKIP_000000000000005_000000000000001
+
+			(* then - Stmts *)
+
+(** 		NDC8.UserDefined.VirRearEncAngle := -(HighDint*256 + LowDint) - NDC8.UserDefined.VirRFeedbackAngle; **)
+			(* assign - Stmt *)
+			LD HighDint
+			MUL 256
+			ADD LowDint
+			NEG
+			SUB NDC8.UserDefined.VirRFeedbackAngle
+			ST NDC8.UserDefined.VirRearEncAngle
+
+			JMP ODK_END_IF_000000000000005
+
+(** 	else **)
+		(* else *) 
+		ODK_SKIP_000000000000005_000000000000001:
+
+			(* else - Stmts *)
+
+(** 		NDC8.UserDefined.VirRearEncAngle := HighDint*256 + LowDint - NDC8.UserDefined.VirRFeedbackAngle; **)
+			(* assign - Stmt *)
+			LD HighDint
+			MUL 256
+			ADD LowDint
+			SUB NDC8.UserDefined.VirRFeedbackAngle
+			ST NDC8.UserDefined.VirRearEncAngle
+
+(** 	end_if; **)
+		(* if - End *) 
+		ODK_END_IF_000000000000005:
+
+		JMP ODK_END_IF_000000000000001
+
+(**  **)
+(** elsif NDC8.Vehicle.VehicleID=3 then  {* Client Vehicle *} **)
+	(* elseif - Cond *) 
+	ODK_SKIP_000000000000001_000000000000001:
+	LD NDC8.Vehicle.VehicleID
+	EQ 3
+	JMPCN ODK_SKIP_000000000000001_000000000000002
+
+		(* elsif - Stmts *)
+
+(** 	HighDint := byte_to_dint(DriverReceive_ValueByte[5]); **)
+		(* assign - Stmt *)
+		LD DriverReceive_ValueByte[5]
+		byte_to_dint 
+		ST HighDint
+
+(** 	LowDint  := byte_to_dint(DriverReceive_ValueByte[6]); **)
+		(* assign - Stmt *)
+		LD DriverReceive_ValueByte[6]
+		byte_to_dint 
+		ST LowDint
+
+(** 	if DriverReceive_ValueByte[13]=1 then **)
+		(* if - Cond *)
+		LD DriverReceive_ValueByte[13]
+		EQ 1
+		JMPCN ODK_SKIP_000000000000006_000000000000001
+
+			(* then - Stmts *)
+
+(** 		NDC8.UserDefined.FrontSetSpeed := HighDint*256 + LowDint; **)
+			(* assign - Stmt *)
+			LD HighDint
+			MUL 256
+			ADD LowDint
+			ST NDC8.UserDefined.FrontSetSpeed
+
+			JMP ODK_END_IF_000000000000006
+
+(** 	else **)
+		(* else *) 
+		ODK_SKIP_000000000000006_000000000000001:
+
+			(* else - Stmts *)
+
+(** 		NDC8.UserDefined.FrontSetSpeed := -(HighDint*256 + LowDint); **)
+			(* assign - Stmt *)
+			LD HighDint
+			MUL 256
+			ADD LowDint
+			NEG
+			ST NDC8.UserDefined.FrontSetSpeed
+
+(** 	end_if; **)
+		(* if - End *) 
+		ODK_END_IF_000000000000006:
+
+(** 	 **)
+(** 	HighDint := byte_to_dint(DriverReceive_ValueByte[7]); **)
+		(* assign - Stmt *)
+		LD DriverReceive_ValueByte[7]
+		byte_to_dint 
+		ST HighDint
+
+(** 	LowDint  := byte_to_dint(DriverReceive_ValueByte[8]); **)
+		(* assign - Stmt *)
+		LD DriverReceive_ValueByte[8]
+		byte_to_dint 
+		ST LowDint
+
+(** 	if DriverReceive_ValueByte[14]=1 then **)
+		(* if - Cond *)
+		LD DriverReceive_ValueByte[14]
+		EQ 1
+		JMPCN ODK_SKIP_000000000000007_000000000000001
+
+			(* then - Stmts *)
+
+(** 		NDC8.UserDefined.FrontSetAngle := -(HighDint*256 + LowDint); **)
+			(* assign - Stmt *)
+			LD HighDint
+			MUL 256
+			ADD LowDint
+			NEG
+			ST NDC8.UserDefined.FrontSetAngle
+
+			JMP ODK_END_IF_000000000000007
+
+(** 	else **)
+		(* else *) 
+		ODK_SKIP_000000000000007_000000000000001:
+
+			(* else - Stmts *)
+
+(** 		NDC8.UserDefined.FrontSetAngle := HighDint*256 + LowDint; **)
+			(* assign - Stmt *)
+			LD HighDint
+			MUL 256
+			ADD LowDint
+			ST NDC8.UserDefined.FrontSetAngle
+
+(** 	end_if; **)
+		(* if - End *) 
+		ODK_END_IF_000000000000007:
+
+(** 	 **)
+(** 	HighDint := byte_to_dint(DriverReceive_ValueByte[9]); **)
+		(* assign - Stmt *)
+		LD DriverReceive_ValueByte[9]
+		byte_to_dint 
+		ST HighDint
+
+(** 	LowDint  := byte_to_dint(DriverReceive_ValueByte[10]); **)
+		(* assign - Stmt *)
+		LD DriverReceive_ValueByte[10]
+		byte_to_dint 
+		ST LowDint
+
+(** 	if DriverReceive_ValueByte[15]=1 then **)
+		(* if - Cond *)
+		LD DriverReceive_ValueByte[15]
+		EQ 1
+		JMPCN ODK_SKIP_000000000000008_000000000000001
+
+			(* then - Stmts *)
+
+(** 		NDC8.UserDefined.RearSetSpeed := HighDint*256 + LowDint; **)
+			(* assign - Stmt *)
+			LD HighDint
+			MUL 256
+			ADD LowDint
+			ST NDC8.UserDefined.RearSetSpeed
+
+			JMP ODK_END_IF_000000000000008
+
+(** 	else **)
+		(* else *) 
+		ODK_SKIP_000000000000008_000000000000001:
+
+			(* else - Stmts *)
+
+(** 		NDC8.UserDefined.RearSetSpeed := -(HighDint*256 + LowDint); **)
+			(* assign - Stmt *)
+			LD HighDint
+			MUL 256
+			ADD LowDint
+			NEG
+			ST NDC8.UserDefined.RearSetSpeed
+
+(** 	end_if; **)
+		(* if - End *) 
+		ODK_END_IF_000000000000008:
+
+(** 	 **)
+(** 	HighDint := byte_to_dint(DriverReceive_ValueByte[11]); **)
+		(* assign - Stmt *)
+		LD DriverReceive_ValueByte[11]
+		byte_to_dint 
+		ST HighDint
+
+(** 	LowDint  := byte_to_dint(DriverReceive_ValueByte[12]); **)
+		(* assign - Stmt *)
+		LD DriverReceive_ValueByte[12]
+		byte_to_dint 
+		ST LowDint
+
+(** 	if DriverReceive_ValueByte[16]=1 then **)
+		(* if - Cond *)
+		LD DriverReceive_ValueByte[16]
+		EQ 1
+		JMPCN ODK_SKIP_000000000000009_000000000000001
+
+			(* then - Stmts *)
+
+(** 		NDC8.UserDefined.RearSetAngle := -(HighDint*256 + LowDint); **)
+			(* assign - Stmt *)
+			LD HighDint
+			MUL 256
+			ADD LowDint
+			NEG
+			ST NDC8.UserDefined.RearSetAngle
+
+			JMP ODK_END_IF_000000000000009
+
+(** 	else **)
+		(* else *) 
+		ODK_SKIP_000000000000009_000000000000001:
+
+			(* else - Stmts *)
+
+(** 		NDC8.UserDefined.RearSetAngle := HighDint*256 + LowDint; **)
+			(* assign - Stmt *)
+			LD HighDint
+			MUL 256
+			ADD LowDint
+			ST NDC8.UserDefined.RearSetAngle
+
+(** 	end_if; **)
+		(* if - End *) 
+		ODK_END_IF_000000000000009:
+
+		JMP ODK_END_IF_000000000000001
+
+(** end_if; **)
+	(* if - End *) 
+	ODK_SKIP_000000000000001_000000000000002:
+	ODK_END_IF_000000000000001:
+
+(**  **)
+(** Finish := true; **)
+	(* assign - Stmt *)
+	LD true
+	ST Finish
+
+(**  **)
+(**  **)
+
+END_FUNCTION_BLOCK

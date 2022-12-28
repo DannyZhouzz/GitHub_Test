@@ -1,0 +1,1367 @@
+FUNCTION_BLOCK TCP_DriverTrasfer_FB
+VAR_EXTERNAL
+NDC8 : NDC8_T;
+DriverSend_ValueByte:ARRAY[1..500] OF Byte;
+DriverReceive_ValueByte:ARRAY[1..500] OF Byte;
+END_VAR
+
+VAR_INPUT
+
+END_VAR
+
+VAR_OUTPUT
+
+END_VAR
+
+VAR
+serial_read : NDC8_SERIAL_READ;
+serial_write : NDC8_SERIAL_WRITE;
+StartDelayTon : TON;
+StartDelay : BOOL;
+init : BOOL;
+TcpPortState : DINT;
+ConvWord:WORD;			(*Sum of the two first bytes*)
+ConvByteL:int;			(*Low byte*)
+ConvByteH:int;			(*High byte*)
+start_adress : int;
+num_words : dint;
+X: INT;
+Y: INT;
+Z: INT;
+Index:DINT;
+SendLength : int;
+Function_Code : dint;
+StartWriteTON : ton;
+StartWrite : bool;
+TcpPort_CRC : TcpPort_CRC_FB;
+ReadData : ARRAY[1..32] OF BYTE;
+ReadLength : int;
+crclow : int;
+crchigh : int;
+CheckLength : uint;
+initite : bool;
+WriteData : Array[1..32] of Byte;
+count : dint;
+
+VirDriverSendData : VirDriverSendData_FB;
+VirDriverReceiveData : VirDriverReceiveData_FB;
+END_VAR
+
+(*Automatically declared*)
+VAR_EXTERNAL
+	A : bool;
+	TCP_OK : bool;
+END_VAR
+(**  **)
+(** StartDelayTon(IN:=StartDelay,PT:=t#100ms); **)
+	(* call - Stmt *)
+	CAL StartDelayTon (
+		IN := StartDelay,
+		PT := t#100ms
+	)
+
+(** StartWriteTON(IN:=StartWrite,PT:=t#50ms); **)
+	(* call - Stmt *)
+	CAL StartWriteTON (
+		IN := StartWrite,
+		PT := t#50ms
+	)
+
+(**  **)
+(** if not NDC8.UserDefined.Boolean_25 then **)
+	(* if - Cond *)
+	LD NDC8.UserDefined.Boolean_25
+	NOT
+	JMPCN ODK_SKIP_000000000000001_000000000000001
+
+		(* then - Stmts *)
+
+(** 	TcpPortState := 0; **)
+		(* assign - Stmt *)
+		LD 0
+		ST TcpPortState
+
+(** 	TCP_OK := false; **)
+		(* assign - Stmt *)
+		LD false
+		ST TCP_OK
+
+		JMP ODK_END_IF_000000000000001
+
+(** end_if; **)
+	(* if - End *) 
+	ODK_SKIP_000000000000001_000000000000001:
+	ODK_END_IF_000000000000001:
+
+(**  **)
+(** {* Always read COM7 to check if some information from Host *} **)
+(** {*serial_read(port := 'COM7');*} **)
+(**  **)
+(** if not Init then **)
+	(* if - Cond *)
+	LD Init
+	NOT
+	JMPCN ODK_SKIP_000000000000002_000000000000001
+
+		(* then - Stmts *)
+
+(** 	serial_write.port := 'COM7'; **)
+		(* assign - Stmt *)
+		LD 'COM7'
+		ST serial_write.port
+
+(** 	serial_read.port := 'COM7'; **)
+		(* assign - Stmt *)
+		LD 'COM7'
+		ST serial_read.port
+
+(** {*	serial_write.port := 'COM8'; **)
+(** 	serial_read.port := 'COM8';*} **)
+(** 	Init := true; **)
+		(* assign - Stmt *)
+		LD true
+		ST Init
+
+		JMP ODK_END_IF_000000000000002
+
+(** end_if; **)
+	(* if - End *) 
+	ODK_SKIP_000000000000002_000000000000001:
+	ODK_END_IF_000000000000002:
+
+(**  **)
+(** case TcpPortState of **)
+(** 0: **)
+	(* case - Elm *) 
+	ODK_SKIP_000000000000003_000000000000000:
+
+	(* case - Cond *)
+	LD TcpPortState
+	EQ 0
+	JMPC ODK_CASE_000000000000003_000000000000001
+
+	JMP ODK_SKIP_000000000000003_000000000000001
+
+	(* case - Stmts *) 
+	ODK_CASE_000000000000003_000000000000001:
+
+(** {*	StartDelay := true; **)
+(** 	if StartDelayTon.Q then **)
+(** 	TcpPortState := 50; **)
+(** 	StartDelay := false; **)
+(** 	end_if;*} **)
+(** 	TcpPortState := 50; **)
+		(* assign - Stmt *)
+		LD 50
+		ST TcpPortState
+
+		JMP ODK_END_CASE_000000000000003
+
+(**  **)
+(** 50: **)
+	(* case - Elm *) 
+	ODK_SKIP_000000000000003_000000000000001:
+
+	(* case - Cond *)
+	LD TcpPortState
+	EQ 50
+	JMPC ODK_CASE_000000000000003_000000000000002
+
+	JMP ODK_SKIP_000000000000003_000000000000002
+
+	(* case - Stmts *) 
+	ODK_CASE_000000000000003_000000000000002:
+
+(** 	if NDC8.Vehicle.VehicleID=2 then **)
+		(* if - Cond *)
+		LD NDC8.Vehicle.VehicleID
+		EQ 2
+		JMPCN ODK_SKIP_000000000000004_000000000000001
+
+			(* then - Stmts *)
+
+(** 		TcpPortState := 1; **)
+			(* assign - Stmt *)
+			LD 1
+			ST TcpPortState
+
+			JMP ODK_END_IF_000000000000004
+
+(** 	elsif NDC8.Vehicle.VehicleID=3 then **)
+		(* elseif - Cond *) 
+		ODK_SKIP_000000000000004_000000000000001:
+		LD NDC8.Vehicle.VehicleID
+		EQ 3
+		JMPCN ODK_SKIP_000000000000004_000000000000002
+
+			(* elsif - Stmts *)
+
+(** 		TcpPortState := 2; **)
+			(* assign - Stmt *)
+			LD 2
+			ST TcpPortState
+
+			JMP ODK_END_IF_000000000000004
+
+(** 	end_if; **)
+		(* if - End *) 
+		ODK_SKIP_000000000000004_000000000000002:
+		ODK_END_IF_000000000000004:
+
+		JMP ODK_END_CASE_000000000000003
+
+(** 	 **)
+(** 1:   	 **)
+	(* case - Elm *) 
+	ODK_SKIP_000000000000003_000000000000002:
+
+	(* case - Cond *)
+	LD TcpPortState
+	EQ 1
+	JMPC ODK_CASE_000000000000003_000000000000003
+
+	JMP ODK_SKIP_000000000000003_000000000000003
+
+	(* case - Stmts *) 
+	ODK_CASE_000000000000003_000000000000003:
+
+(** 	WriteData[1] := 16#4A; **)
+		(* assign - Stmt *)
+		LD 16#4A
+		ST WriteData[1]
+
+(** 	WriteData[2] := 16#54; **)
+		(* assign - Stmt *)
+		LD 16#54
+		ST WriteData[2]
+
+(** 	WriteData[3] := 16#03; {* Virtual Vehicle ID *} **)
+		(* assign - Stmt *)
+		LD 16#03
+		ST WriteData[3]
+
+(** 	WriteData[4] := 16#03; {* Function Code *} **)
+		(* assign - Stmt *)
+		LD 16#03
+		ST WriteData[4]
+
+(** 	VirDriverSendData();   {* Vir Vehicle speed and angle , data[5] to data[12] *} **)
+		(* call - Stmt *)
+		CAL VirDriverSendData
+
+(** 	if VirDriverSendData.Finish then	 **)
+		(* if - Cond *)
+		LD VirDriverSendData.Finish
+		JMPCN ODK_SKIP_000000000000005_000000000000001
+
+			(* then - Stmts *)
+
+(** 		Y := 5; **)
+			(* assign - Stmt *)
+			LD 5
+			ST Y
+
+(** 		X := 5; **)
+			(* assign - Stmt *)
+			LD 5
+			ST X
+
+(** 		For Index:=1 to 6 By 1 Do **)
+			(* for - Init *)
+			LD 1
+			ST Index
+			EQ 6
+			JMPC ODK_FOR_STMTS_000000000000006
+
+			(* for - Cond *)
+			ODK_FOR_000000000000006:
+
+			LD 1
+			GT 6
+			JMPC ODK_FOR_DOWN_000000000000006
+
+			LD 0
+			GT 1
+			JMPC ODK_END_FOR_000000000000006
+
+			LD 6
+			LT Index
+			JMPC ODK_END_FOR_000000000000006
+			JMP ODK_FOR_STMTS_000000000000006
+
+			ODK_FOR_DOWN_000000000000006:
+
+			LD 6
+			GT Index
+			JMPC ODK_END_FOR_000000000000006
+
+			LD 0
+			LT 1
+			JMPC ODK_END_FOR_000000000000006
+
+				(* for - Stmts *)
+				ODK_FOR_STMTS_000000000000006:
+
+(** 			WriteData[Y] := DriverSend_ValueByte[X]; **)
+				(* assign - Stmt *)
+				LD DriverSend_ValueByte[X]
+				ST WriteData[Y]
+
+(** 			Y:=Y+1; **)
+				(* assign - Stmt *)
+				LD Y
+				ADD 1
+				ST Y
+
+(** 			X:=X+1; **)
+				(* assign - Stmt *)
+				LD X
+				ADD 1
+				ST X
+
+(** 			WriteData[Y] := DriverSend_ValueByte[X]; **)
+				(* assign - Stmt *)
+				LD DriverSend_ValueByte[X]
+				ST WriteData[Y]
+
+(** 			Y:=Y+1; **)
+				(* assign - Stmt *)
+				LD Y
+				ADD 1
+				ST Y
+
+(** 			X:=X+1; **)
+				(* assign - Stmt *)
+				LD X
+				ADD 1
+				ST X
+
+			(* for - By *)
+			LD 1
+			ADD Index
+			ST Index
+(** 		end_for; **)
+
+			JMP ODK_FOR_000000000000006
+
+			(* for - End *) 
+			ODK_END_FOR_000000000000006:
+
+(** 		CheckLength := 16; **)
+			(* assign - Stmt *)
+			LD 16
+			ST CheckLength
+
+(** 		crclow := 17; **)
+			(* assign - Stmt *)
+			LD 17
+			ST crclow
+
+(** 		crchigh := 18; **)
+			(* assign - Stmt *)
+			LD 18
+			ST crchigh
+
+(** 		TcpPort_CRC(cBuffer:=WriteData,CrcLength:=CheckLength); **)
+			(* call - Stmt *)
+			CAL TcpPort_CRC (
+				cBuffer := WriteData,
+				CrcLength := CheckLength
+			)
+
+(** 		WriteData[crclow]:=TcpPort_CRC.CrcLow; **)
+			(* assign - Stmt *)
+			LD TcpPort_CRC.crclow
+			ST WriteData[crclow]
+
+(** 		WriteData[crchigh]:=TcpPort_CRC.CrcHigh; **)
+			(* assign - Stmt *)
+			LD TcpPort_CRC.crchigh
+			ST WriteData[crchigh]
+
+(** 		SendLength := 18; **)
+			(* assign - Stmt *)
+			LD 18
+			ST SendLength
+
+(** 		StartWrite := true; **)
+			(* assign - Stmt *)
+			LD true
+			ST StartWrite
+
+(** 		TcpPortState := 80; **)
+			(* assign - Stmt *)
+			LD 80
+			ST TcpPortState
+
+			JMP ODK_END_IF_000000000000005
+
+(** 	end_if; **)
+		(* if - End *) 
+		ODK_SKIP_000000000000005_000000000000001:
+		ODK_END_IF_000000000000005:
+
+		JMP ODK_END_CASE_000000000000003
+
+(** 	 **)
+(** 80: **)
+	(* case - Elm *) 
+	ODK_SKIP_000000000000003_000000000000003:
+
+	(* case - Cond *)
+	LD TcpPortState
+	EQ 80
+	JMPC ODK_CASE_000000000000003_000000000000004
+
+	JMP ODK_SKIP_000000000000003_000000000000004
+
+	(* case - Stmts *) 
+	ODK_CASE_000000000000003_000000000000004:
+
+(** 	{*serial_write(port := 'COM7'); **)
+(** 	serial_write.length := dint_to_int(SendLength);*} **)
+(** 	if NDC8.UserDefined.Boolean_25 then	 **)
+		(* if - Cond *)
+		LD NDC8.UserDefined.Boolean_25
+		JMPCN ODK_SKIP_000000000000007_000000000000001
+
+			(* then - Stmts *)
+
+(** 		if StartWriteTON.Q then **)
+			(* if - Cond *)
+			LD StartWriteTON.Q
+			JMPCN ODK_SKIP_000000000000008_000000000000001
+
+				(* then - Stmts *)
+
+(** 			serial_write( port:='COM7',data:=WriteData,length:=SendLength ); **)
+				(* call - Stmt *)
+				CAL serial_write (
+					port := 'COM7',
+					data := WriteData,
+					length := SendLength
+				)
+
+(** 			serial_write( port:='COM7',data:=WriteData,length:=0 ); **)
+				(* call - Stmt *)
+				CAL serial_write (
+					port := 'COM7',
+					data := WriteData,
+					length := 0
+				)
+
+(** 			StartWrite := false; **)
+				(* assign - Stmt *)
+				LD false
+				ST StartWrite
+
+(** 			TcpPortState:=2; **)
+				(* assign - Stmt *)
+				LD 2
+				ST TcpPortState
+
+				JMP ODK_END_IF_000000000000008
+
+(** 		else **)
+			(* else *) 
+			ODK_SKIP_000000000000008_000000000000001:
+
+				(* else - Stmts *)
+
+(** 			TcpPortState:=2; **)
+				(* assign - Stmt *)
+				LD 2
+				ST TcpPortState
+
+(** 		end_if; **)
+			(* if - End *) 
+			ODK_END_IF_000000000000008:
+
+			JMP ODK_END_IF_000000000000007
+
+(** 	else **)
+		(* else *) 
+		ODK_SKIP_000000000000007_000000000000001:
+
+			(* else - Stmts *)
+
+(** 		TcpPortState:=0; **)
+			(* assign - Stmt *)
+			LD 0
+			ST TcpPortState
+
+(** 	end_if;	 **)
+		(* if - End *) 
+		ODK_END_IF_000000000000007:
+
+		JMP ODK_END_CASE_000000000000003
+
+(** {*	if serial_write.sent<>0 then **)
+(** 		TcpPortState:=2;			 **)
+(** 	end_if;	*} **)
+(**  **)
+(** 2: **)
+	(* case - Elm *) 
+	ODK_SKIP_000000000000003_000000000000004:
+
+	(* case - Cond *)
+	LD TcpPortState
+	EQ 2
+	JMPC ODK_CASE_000000000000003_000000000000005
+
+	JMP ODK_SKIP_000000000000003_000000000000005
+
+	(* case - Stmts *) 
+	ODK_CASE_000000000000003_000000000000005:
+
+(** 	serial_read(port := 'COM7'); **)
+		(* call - Stmt *)
+		CAL serial_read (
+			port := 'COM7'
+		)
+
+(** 	{* check data valid?is it matchs the vehicle? *} **)
+(** 	ReadLength := serial_read.length; **)
+		(* assign - Stmt *)
+		LD serial_read.length
+		ST ReadLength
+
+(** 	ReadData := serial_read.data; **)
+		(* assign - Stmt *)
+		LD serial_read.data
+		ST ReadData
+
+(** 	if ReadLength >0 and ReadData[1]=16#4A and ReadData[2]=16#54 **)
+(** 		and (NDC8.Vehicle.VehicleID = byte_to_dint(ReadData[3])) then **)
+		(* if - Cond *)
+		LD ReadLength
+		GT 0
+		AND ( ReadData[1]
+			EQ 16#4A
+		)
+		AND ( ReadData[2]
+			EQ 16#54
+		)
+		AND ( NDC8.Vehicle.VehicleID
+			EQ ( ReadData[3]
+				byte_to_dint 
+			)
+		)
+		JMPCN ODK_SKIP_000000000000009_000000000000001
+
+			(* then - Stmts *)
+
+(** 		if (byte_to_dint(ReadData[3])=3 or byte_to_dint(ReadData[3])=2) then **)
+			(* if - Cond *)
+			LD ReadData[3]
+			byte_to_dint 
+			EQ 3
+			OR ( ReadData[3]
+				byte_to_dint 
+				EQ 2
+			)
+			JMPCN ODK_SKIP_00000000000000A_000000000000001
+
+				(* then - Stmts *)
+
+(** 		TCP_OK := true; **)
+				(* assign - Stmt *)
+				LD true
+				ST TCP_OK
+
+(** 		Count := 0; **)
+				(* assign - Stmt *)
+				LD 0
+				ST Count
+
+(** 		TcpPortState := 3; **)
+				(* assign - Stmt *)
+				LD 3
+				ST TcpPortState
+
+				JMP ODK_END_IF_00000000000000A
+
+(** 		else **)
+			(* else *) 
+			ODK_SKIP_00000000000000A_000000000000001:
+
+				(* else - Stmts *)
+
+(** 		Count := 0; **)
+				(* assign - Stmt *)
+				LD 0
+				ST Count
+
+(** 		TcpPortState := 3; **)
+				(* assign - Stmt *)
+				LD 3
+				ST TcpPortState
+
+(** 		end_if; **)
+			(* if - End *) 
+			ODK_END_IF_00000000000000A:
+
+			JMP ODK_END_IF_000000000000009
+
+(** 	else **)
+		(* else *) 
+		ODK_SKIP_000000000000009_000000000000001:
+
+			(* else - Stmts *)
+
+(** 		Count := Count + 1; **)
+			(* assign - Stmt *)
+			LD Count
+			ADD 1
+			ST Count
+
+(** 		if Count>10 or not NDC8.UserDefined.Boolean_25 then **)
+			(* if - Cond *)
+			LD Count
+			GT 10
+			OR ( NDC8.UserDefined.Boolean_25
+				NOT
+			)
+			JMPCN ODK_SKIP_00000000000000B_000000000000001
+
+				(* then - Stmts *)
+
+(** 			TCP_OK := false; **)
+				(* assign - Stmt *)
+				LD false
+				ST TCP_OK
+
+(** 			Count := 0; **)
+				(* assign - Stmt *)
+				LD 0
+				ST Count
+
+				JMP ODK_END_IF_00000000000000B
+
+(** 		end_if; **)
+			(* if - End *) 
+			ODK_SKIP_00000000000000B_000000000000001:
+			ODK_END_IF_00000000000000B:
+
+(** 		TcpPortState := 0; **)
+			(* assign - Stmt *)
+			LD 0
+			ST TcpPortState
+
+(** 	end_if; **)
+		(* if - End *) 
+		ODK_END_IF_000000000000009:
+
+		JMP ODK_END_CASE_000000000000003
+
+(** {* **)
+(** 30: **)
+(** 	serial_read(port := 'COM7'); **)
+(** 	ReadLength := serial_read.length; **)
+(** 	ReadData := serial_read.data; **)
+(** 	if ReadLength >0 and ReadData[1]=16#4A and ReadData[2]=16#54 **)
+(** 		and (NDC8.Vehicle.VehicleID = byte_to_dint(ReadData[3])) then **)
+(** 		TcpPortState := 3; **)
+(** 		TCP_OK := true; **)
+(** 	else **)
+(** 		TcpPortState := 0; **)
+(** 		TCP_OK := false; **)
+(** 	end_if; **)
+(** *} **)
+(** 3: **)
+	(* case - Elm *) 
+	ODK_SKIP_000000000000003_000000000000005:
+
+	(* case - Cond *)
+	LD TcpPortState
+	EQ 3
+	JMPC ODK_CASE_000000000000003_000000000000006
+
+	JMP ODK_SKIP_000000000000003_000000000000006
+
+	(* case - Stmts *) 
+	ODK_CASE_000000000000003_000000000000006:
+
+(** 	{* check the data read from Tcp Port is right or not *} **)
+(** 	crclow := ReadLength - 1; **)
+		(* assign - Stmt *)
+		LD ReadLength
+		SUB 1
+		ST crclow
+
+(** 	crchigh := ReadLength; **)
+		(* assign - Stmt *)
+		LD ReadLength
+		ST crchigh
+
+(** 	CheckLength := int_to_uint(ReadLength - 2); **)
+		(* assign - Stmt *)
+		LD ReadLength
+		SUB 2
+		int_to_uint 
+		ST CheckLength
+
+(** 	TcpPort_CRC(cBuffer:=ReadData,CrcLength:=CheckLength); **)
+		(* call - Stmt *)
+		CAL TcpPort_CRC (
+			cBuffer := ReadData,
+			CrcLength := CheckLength
+		)
+
+(** 	if ReadData[crclow]=TcpPort_CRC.CrcLow and ReadData[crchigh]=TcpPort_CRC.CrcHigh then **)
+		(* if - Cond *)
+		LD ReadData[crclow]
+		EQ TcpPort_CRC.crclow
+		AND ( ReadData[crchigh]
+			EQ TcpPort_CRC.crchigh
+		)
+		JMPCN ODK_SKIP_00000000000000C_000000000000001
+
+			(* then - Stmts *)
+
+(** 		TcpPortState := 4; **)
+			(* assign - Stmt *)
+			LD 4
+			ST TcpPortState
+
+			JMP ODK_END_IF_00000000000000C
+
+(** 	else **)
+		(* else *) 
+		ODK_SKIP_00000000000000C_000000000000001:
+
+			(* else - Stmts *)
+
+(** 		TcpPortState := 0; **)
+			(* assign - Stmt *)
+			LD 0
+			ST TcpPortState
+
+(** 	end_if; **)
+		(* if - End *) 
+		ODK_END_IF_00000000000000C:
+
+		JMP ODK_END_CASE_000000000000003
+
+(**  **)
+(** 4: **)
+	(* case - Elm *) 
+	ODK_SKIP_000000000000003_000000000000006:
+
+	(* case - Cond *)
+	LD TcpPortState
+	EQ 4
+	JMPC ODK_CASE_000000000000003_000000000000007
+
+	JMP ODK_SKIP_000000000000003_000000000000007
+
+	(* case - Stmts *) 
+	ODK_CASE_000000000000003_000000000000007:
+
+(** 	Function_Code := byte_to_dint(ReadData[4]); **)
+		(* assign - Stmt *)
+		LD ReadData[4]
+		byte_to_dint 
+		ST Function_Code
+
+(** 	case Function_Code of **)
+(** 	3:  **)
+		(* case - Elm *) 
+		ODK_SKIP_00000000000000D_000000000000000:
+
+		(* case - Cond *)
+		LD Function_Code
+		EQ 3
+		JMPC ODK_CASE_00000000000000D_000000000000001
+
+		JMP ODK_SKIP_00000000000000D_000000000000001
+
+		(* case - Stmts *) 
+		ODK_CASE_00000000000000D_000000000000001:
+
+(** 	{*	ISD_ValueByte_Read(); **)
+(** 		if ISD_ValueByte_Read.finish then **)
+(** 		TcpPortState := 10; **)
+(** 		end_if;*} **)
+(** 		TcpPortState := 11; **)
+			(* assign - Stmt *)
+			LD 11
+			ST TcpPortState
+
+			JMP ODK_END_CASE_00000000000000D
+
+(**    16:   						 **)
+		(* case - Elm *) 
+		ODK_SKIP_00000000000000D_000000000000001:
+
+		(* case - Cond *)
+		LD Function_Code
+		EQ 16
+		JMPC ODK_CASE_00000000000000D_000000000000002
+
+		JMP ODK_SKIP_00000000000000D_000000000000002
+
+		(* case - Stmts *) 
+		ODK_CASE_00000000000000D_000000000000002:
+
+(**   		TcpPortState := 20; **)
+			(* assign - Stmt *)
+			LD 20
+			ST TcpPortState
+
+			JMP ODK_END_CASE_00000000000000D
+
+(** end_case; **)
+		(* case - End *) 
+		ODK_SKIP_00000000000000D_000000000000002:
+		ODK_END_CASE_00000000000000D:
+
+		JMP ODK_END_CASE_000000000000003
+
+(**  **)
+(** 20: **)
+	(* case - Elm *) 
+	ODK_SKIP_000000000000003_000000000000007:
+
+	(* case - Cond *)
+	LD TcpPortState
+	EQ 20
+	JMPC ODK_CASE_000000000000003_000000000000008
+
+	JMP ODK_SKIP_000000000000003_000000000000008
+
+	(* case - Stmts *) 
+	ODK_CASE_000000000000003_000000000000008:
+
+(** 	{* reveive vie vehicle speed and angle *} **)
+(** 	Y := 5; **)
+		(* assign - Stmt *)
+		LD 5
+		ST Y
+
+(** 	X := 5; **)
+		(* assign - Stmt *)
+		LD 5
+		ST X
+
+(** 	For Index:=1 to 6 By 1 Do **)
+		(* for - Init *)
+		LD 1
+		ST Index
+		EQ 6
+		JMPC ODK_FOR_STMTS_00000000000000E
+
+		(* for - Cond *)
+		ODK_FOR_00000000000000E:
+
+		LD 1
+		GT 6
+		JMPC ODK_FOR_DOWN_00000000000000E
+
+		LD 0
+		GT 1
+		JMPC ODK_END_FOR_00000000000000E
+
+		LD 6
+		LT Index
+		JMPC ODK_END_FOR_00000000000000E
+		JMP ODK_FOR_STMTS_00000000000000E
+
+		ODK_FOR_DOWN_00000000000000E:
+
+		LD 6
+		GT Index
+		JMPC ODK_END_FOR_00000000000000E
+
+		LD 0
+		LT 1
+		JMPC ODK_END_FOR_00000000000000E
+
+			(* for - Stmts *)
+			ODK_FOR_STMTS_00000000000000E:
+
+(** 	DriverReceive_ValueByte[Y] := ReadData[X]; **)
+			(* assign - Stmt *)
+			LD ReadData[X]
+			ST DriverReceive_ValueByte[Y]
+
+(** 	Y:=Y+1; **)
+			(* assign - Stmt *)
+			LD Y
+			ADD 1
+			ST Y
+
+(** 	X:=X+1; **)
+			(* assign - Stmt *)
+			LD X
+			ADD 1
+			ST X
+
+(** 	DriverReceive_ValueByte[Y] := ReadData[X]; **)
+			(* assign - Stmt *)
+			LD ReadData[X]
+			ST DriverReceive_ValueByte[Y]
+
+(** 	Y:=Y+1; **)
+			(* assign - Stmt *)
+			LD Y
+			ADD 1
+			ST Y
+
+(** 	X:=X+1; **)
+			(* assign - Stmt *)
+			LD X
+			ADD 1
+			ST X
+
+		(* for - By *)
+		LD 1
+		ADD Index
+		ST Index
+(** 	end_for; **)
+
+		JMP ODK_FOR_00000000000000E
+
+		(* for - End *) 
+		ODK_END_FOR_00000000000000E:
+
+(** 	VirDriverReceiveData(); **)
+		(* call - Stmt *)
+		CAL VirDriverReceiveData
+
+(** 	if VirDriverReceiveData.Finish then **)
+		(* if - Cond *)
+		LD VirDriverReceiveData.Finish
+		JMPCN ODK_SKIP_00000000000000F_000000000000001
+
+			(* then - Stmts *)
+
+(** 		TcpPortState := 0; **)
+			(* assign - Stmt *)
+			LD 0
+			ST TcpPortState
+
+			JMP ODK_END_IF_00000000000000F
+
+(** 	end_if; **)
+		(* if - End *) 
+		ODK_SKIP_00000000000000F_000000000000001:
+		ODK_END_IF_00000000000000F:
+
+		JMP ODK_END_CASE_000000000000003
+
+(**  **)
+(**  **)
+(** 11: **)
+	(* case - Elm *) 
+	ODK_SKIP_000000000000003_000000000000008:
+
+	(* case - Cond *)
+	LD TcpPortState
+	EQ 11
+	JMPC ODK_CASE_000000000000003_000000000000009
+
+	JMP ODK_SKIP_000000000000003_000000000000009
+
+	(* case - Stmts *) 
+	ODK_CASE_000000000000003_000000000000009:
+
+(** 	Y := 5; **)
+		(* assign - Stmt *)
+		LD 5
+		ST Y
+
+(** 	X := 5; **)
+		(* assign - Stmt *)
+		LD 5
+		ST X
+
+(** 	For Index:=1 to 6 By 1 Do **)
+		(* for - Init *)
+		LD 1
+		ST Index
+		EQ 6
+		JMPC ODK_FOR_STMTS_00000000000000G
+
+		(* for - Cond *)
+		ODK_FOR_00000000000000G:
+
+		LD 1
+		GT 6
+		JMPC ODK_FOR_DOWN_00000000000000G
+
+		LD 0
+		GT 1
+		JMPC ODK_END_FOR_00000000000000G
+
+		LD 6
+		LT Index
+		JMPC ODK_END_FOR_00000000000000G
+		JMP ODK_FOR_STMTS_00000000000000G
+
+		ODK_FOR_DOWN_00000000000000G:
+
+		LD 6
+		GT Index
+		JMPC ODK_END_FOR_00000000000000G
+
+		LD 0
+		LT 1
+		JMPC ODK_END_FOR_00000000000000G
+
+			(* for - Stmts *)
+			ODK_FOR_STMTS_00000000000000G:
+
+(** 	DriverReceive_ValueByte[Y] := ReadData[X]; **)
+			(* assign - Stmt *)
+			LD ReadData[X]
+			ST DriverReceive_ValueByte[Y]
+
+(** 	Y:=Y+1; **)
+			(* assign - Stmt *)
+			LD Y
+			ADD 1
+			ST Y
+
+(** 	X:=X+1; **)
+			(* assign - Stmt *)
+			LD X
+			ADD 1
+			ST X
+
+(** 	DriverReceive_ValueByte[Y] := ReadData[X]; **)
+			(* assign - Stmt *)
+			LD ReadData[X]
+			ST DriverReceive_ValueByte[Y]
+
+(** 	Y:=Y+1; **)
+			(* assign - Stmt *)
+			LD Y
+			ADD 1
+			ST Y
+
+(** 	X:=X+1; **)
+			(* assign - Stmt *)
+			LD X
+			ADD 1
+			ST X
+
+		(* for - By *)
+		LD 1
+		ADD Index
+		ST Index
+(** 	end_for; **)
+
+		JMP ODK_FOR_00000000000000G
+
+		(* for - End *) 
+		ODK_END_FOR_00000000000000G:
+
+(** 	VirDriverReceiveData(); **)
+		(* call - Stmt *)
+		CAL VirDriverReceiveData
+
+(** 	if VirDriverReceiveData.Finish then **)
+		(* if - Cond *)
+		LD VirDriverReceiveData.Finish
+		JMPCN ODK_SKIP_00000000000000H_000000000000001
+
+			(* then - Stmts *)
+
+(** 		TcpPortState := 12; **)
+			(* assign - Stmt *)
+			LD 12
+			ST TcpPortState
+
+			JMP ODK_END_IF_00000000000000H
+
+(** 	end_if; **)
+		(* if - End *) 
+		ODK_SKIP_00000000000000H_000000000000001:
+		ODK_END_IF_00000000000000H:
+
+		JMP ODK_END_CASE_000000000000003
+
+(**  **)
+(** 12: **)
+	(* case - Elm *) 
+	ODK_SKIP_000000000000003_000000000000009:
+
+	(* case - Cond *)
+	LD TcpPortState
+	EQ 12
+	JMPC ODK_CASE_000000000000003_00000000000000A
+
+	JMP ODK_SKIP_000000000000003_00000000000000A
+
+	(* case - Stmts *) 
+	ODK_CASE_000000000000003_00000000000000A:
+
+(** 	WriteData[1] := 16#4A; **)
+		(* assign - Stmt *)
+		LD 16#4A
+		ST WriteData[1]
+
+(** 	WriteData[2] := 16#54; **)
+		(* assign - Stmt *)
+		LD 16#54
+		ST WriteData[2]
+
+(** 	WriteData[3] := 16#02; {* Master Vehicle ID *} **)
+		(* assign - Stmt *)
+		LD 16#02
+		ST WriteData[3]
+
+(** 	WriteData[4] := 16#10; {* Function Code, Virtual Vehicle return data to Master Vehicle *} **)
+		(* assign - Stmt *)
+		LD 16#10
+		ST WriteData[4]
+
+(** 	VirDriverSendData();   {* Vir Vehicle speed and angle , data[5] to data[12] *} **)
+		(* call - Stmt *)
+		CAL VirDriverSendData
+
+(** 	if VirDriverSendData.Finish then **)
+		(* if - Cond *)
+		LD VirDriverSendData.Finish
+		JMPCN ODK_SKIP_00000000000000I_000000000000001
+
+			(* then - Stmts *)
+
+(** 		Y := 5; **)
+			(* assign - Stmt *)
+			LD 5
+			ST Y
+
+(** 		X := 5; **)
+			(* assign - Stmt *)
+			LD 5
+			ST X
+
+(** 		For Index:=1 to 6 By 1 Do **)
+			(* for - Init *)
+			LD 1
+			ST Index
+			EQ 6
+			JMPC ODK_FOR_STMTS_00000000000000J
+
+			(* for - Cond *)
+			ODK_FOR_00000000000000J:
+
+			LD 1
+			GT 6
+			JMPC ODK_FOR_DOWN_00000000000000J
+
+			LD 0
+			GT 1
+			JMPC ODK_END_FOR_00000000000000J
+
+			LD 6
+			LT Index
+			JMPC ODK_END_FOR_00000000000000J
+			JMP ODK_FOR_STMTS_00000000000000J
+
+			ODK_FOR_DOWN_00000000000000J:
+
+			LD 6
+			GT Index
+			JMPC ODK_END_FOR_00000000000000J
+
+			LD 0
+			LT 1
+			JMPC ODK_END_FOR_00000000000000J
+
+				(* for - Stmts *)
+				ODK_FOR_STMTS_00000000000000J:
+
+(** 			WriteData[Y] := DriverSend_ValueByte[X]; **)
+				(* assign - Stmt *)
+				LD DriverSend_ValueByte[X]
+				ST WriteData[Y]
+
+(** 			Y:=Y+1; **)
+				(* assign - Stmt *)
+				LD Y
+				ADD 1
+				ST Y
+
+(** 			X:=X+1; **)
+				(* assign - Stmt *)
+				LD X
+				ADD 1
+				ST X
+
+(** 			WriteData[Y] := DriverSend_ValueByte[X]; **)
+				(* assign - Stmt *)
+				LD DriverSend_ValueByte[X]
+				ST WriteData[Y]
+
+(** 			Y:=Y+1; **)
+				(* assign - Stmt *)
+				LD Y
+				ADD 1
+				ST Y
+
+(** 			X:=X+1; **)
+				(* assign - Stmt *)
+				LD X
+				ADD 1
+				ST X
+
+			(* for - By *)
+			LD 1
+			ADD Index
+			ST Index
+(** 		end_for; **)
+
+			JMP ODK_FOR_00000000000000J
+
+			(* for - End *) 
+			ODK_END_FOR_00000000000000J:
+
+(** 		CheckLength := 16; **)
+			(* assign - Stmt *)
+			LD 16
+			ST CheckLength
+
+(** 		crclow := 17; **)
+			(* assign - Stmt *)
+			LD 17
+			ST crclow
+
+(** 		crchigh := 18; **)
+			(* assign - Stmt *)
+			LD 18
+			ST crchigh
+
+(** 		TcpPort_CRC(cBuffer:=WriteData,CrcLength:=CheckLength); **)
+			(* call - Stmt *)
+			CAL TcpPort_CRC (
+				cBuffer := WriteData,
+				CrcLength := CheckLength
+			)
+
+(** 		WriteData[crclow]:=TcpPort_CRC.CrcLow; **)
+			(* assign - Stmt *)
+			LD TcpPort_CRC.crclow
+			ST WriteData[crclow]
+
+(** 		WriteData[crchigh]:=TcpPort_CRC.CrcHigh; **)
+			(* assign - Stmt *)
+			LD TcpPort_CRC.crchigh
+			ST WriteData[crchigh]
+
+(** 		SendLength := 18; **)
+			(* assign - Stmt *)
+			LD 18
+			ST SendLength
+
+(** 		StartWrite := true; **)
+			(* assign - Stmt *)
+			LD true
+			ST StartWrite
+
+(** 		TcpPortState := 81; **)
+			(* assign - Stmt *)
+			LD 81
+			ST TcpPortState
+
+			JMP ODK_END_IF_00000000000000I
+
+(** 	end_if; **)
+		(* if - End *) 
+		ODK_SKIP_00000000000000I_000000000000001:
+		ODK_END_IF_00000000000000I:
+
+		JMP ODK_END_CASE_000000000000003
+
+(** 	 **)
+(** 81: **)
+	(* case - Elm *) 
+	ODK_SKIP_000000000000003_00000000000000A:
+
+	(* case - Cond *)
+	LD TcpPortState
+	EQ 81
+	JMPC ODK_CASE_000000000000003_00000000000000B
+
+	JMP ODK_SKIP_000000000000003_00000000000000B
+
+	(* case - Stmts *) 
+	ODK_CASE_000000000000003_00000000000000B:
+
+(** 	{*serial_write(port := 'COM7'); **)
+(** 	serial_write.length := dint_to_int(SendLength);*} **)
+(** 	if StartWriteTON.Q then **)
+		(* if - Cond *)
+		LD StartWriteTON.Q
+		JMPCN ODK_SKIP_00000000000000K_000000000000001
+
+			(* then - Stmts *)
+
+(** 		serial_write( port:='COM7',data:=WriteData,length:=SendLength ); **)
+			(* call - Stmt *)
+			CAL serial_write (
+				port := 'COM7',
+				data := WriteData,
+				length := SendLength
+			)
+
+(** 		serial_write( port:='COM7',data:=WriteData,length:=0 ); **)
+			(* call - Stmt *)
+			CAL serial_write (
+				port := 'COM7',
+				data := WriteData,
+				length := 0
+			)
+
+(** 		StartWrite := false; **)
+			(* assign - Stmt *)
+			LD false
+			ST StartWrite
+
+(** 		TcpPortState:=0; **)
+			(* assign - Stmt *)
+			LD 0
+			ST TcpPortState
+
+			JMP ODK_END_IF_00000000000000K
+
+(** 	end_if;	 **)
+		(* if - End *) 
+		ODK_SKIP_00000000000000K_000000000000001:
+		ODK_END_IF_00000000000000K:
+
+		JMP ODK_END_CASE_000000000000003
+
+(** {*	if serial_write.sent<>0 then **)
+(** 		TcpPortState:=0;			 **)
+(** 	end_if;*} **)
+(** 				 **)
+(** end_case; **)
+	(* case - End *) 
+	ODK_SKIP_000000000000003_00000000000000B:
+	ODK_END_CASE_000000000000003:
+
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+(**  **)
+
+END_FUNCTION_BLOCK
